@@ -2,7 +2,8 @@
 
 ## 简介
 简欢幻实例创建工具simpcreate是一个用于快捷创建简幻欢实例的网页。可以通过该网站获取简幻欢的实例信息，然后创建所需的实例。
-<img width="1201" height="1824" alt="image" src="https://github.com/user-attachments/assets/dd0a7582-ac56-4db9-b774-25bc60402a95" />
+<img width="1243" height="1939" alt="image" src="https://github.com/user-attachments/assets/96dd8850-e126-4409-8bdd-675b9294202d" />
+
 
 
 ## 功能特性
@@ -15,7 +16,7 @@
 ## 使用步骤
 
 ### 首次使用
-1. **访问[网站](https://zhazha7hao.github.io/)**：
+1. **访问[网站](https://zhazha7hao.github.io/simpcreate/)**：
 2. **获取 Token**：
     - 将“简幻欢 Token 获取”按钮拖拽到浏览器收藏夹栏。
     - 访问 [简幻欢官网](https://simpfun.cn/console) 并登录您的账号。
