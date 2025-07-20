@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simpcreate</title>
+    <style>
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+            background:#f5f5f5;margin:0;padding:20px;
+        }
+        .container{
+            max-width:1200px;margin:0 auto;background:#fff;border-radius:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,.1);padding:30px;
+        }
+        h1{color:#333;text-align:center;margin-bottom:30px;}
+        .tutorial{background:#e3f2fd;border:1px solid #90caf9;border-radius:5px;padding:10px 20px;margin-bottom:20px;}
+        .tutorial h2{color:#1976d2;margin-top:0;}
+        .bookmarklet{display:inline-block;background:#1976d2;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;cursor:move;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,.2);}
+        .bookmarklet:hover{background:#1565c0;}
+        table{width:100%;border-collapse:collapse;margin-top:20px;}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd;}
+        th{background:#f8f9fa;font-weight:bold;}
+        .creatable{color:green;}
+        .not-creatable{color:red;}
+        button{background:#1976d2;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-size:16px;}
+        button:hover{background:#1565c0;}
+        button:disabled{background:#ccc;cursor:not-allowed;}
+        .loading,.error,.success{text-align:center;margin:20px 0;}
+        .loading{color:#666;font-size:18px;}
+        .error{color:red;}
+        .success{color:green;font-size:18px;}
+        .selected{background:#e8f5e9!important;}
+        #createBtn{display:block;margin:20px auto;padding:15px 40px;font-size:18px;}
+        .tutorial-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+        .tutorial-content{display:none;font-size:1.1em;}
+        .tutorial.expanded .tutorial-content{display:block;}
+        .toggle-icon{transition:transform .3s;}
+        .tutorial.expanded .toggle-icon{transform:rotate(180deg);}
+        #tokenInput{width:300px;height:30px;font-size:16px;padding:5px 10px;margin-right:10px;}
+        #intervalInput{width:150px;height:40px;font-size:20px;padding:5px 10px;margin-right:10px;}
+        #refreshBtn {display: none;margin: 20px auto;padding: 15px 40px;font-size: 18px;}
+        /* 移动端 */
+        @media(max-width:768px){
+            body{padding:5px;overflow-x:hidden;}
+            .container{padding:10px;box-sizing:border-box;}
+            #tokenInput{width:100%;margin-bottom:10px;box-sizing:border-box;}
+            .table-scroll-container{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;}
+            table{min-width:max-content;border-collapse:collapse;}
+            th,td{padding:6px 8px;font-size:12px;min-width:80px;white-space:nowrap;box-sizing:border-box;}
+            th{position:sticky;left:0;background:#f8f9fa;z-index:1;}
+            button{padding:6px 12px;font-size:12px;}
+            #createBtn{padding:8px 20px;font-size:14px;}
+            #refreshBtn {padding: 8px 20px;font-size: 14px;}
+        }
+        /* 可创建行样式 */
+        .creatable-row{background:#e8f5e9;}
+        .creatable-row.selected{background:#c8e6c9!important;}
+        .not-creatable-row.selected{background:#ffcdd2!important;}
+        .stop{background:#ff0000;}
+        .stop:hover{background:#ff0000 !important;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>简欢幻实例创建工具</h1>
+
+    <div id="tutorial" class="tutorial">
+        <div class="tutorial-header" onclick="toggleTutorial()">
+            <h2>首次使用教程</h2>
+            <span class="toggle-icon">▼</span>
+        </div>
+        <div class="tutorial-content">
+            <p>请按以下步骤完成设置：</p>
+            <ol>
+                <li>将下方按钮拖拽到浏览器收藏夹栏：<br>
+                    <a href="javascript:(function(){navigator.clipboard.writeText(localStorage.getItem('token')).then(()=>alert('Token 已复制到剪贴板！')).catch(()=>alert('复制失败，请手动复制：'+localStorage.getItem('token')));})();" class="bookmarklet" title="简幻欢Token设置工具">简幻欢Token获取</a>
+                </li>
+                <li>访问 <a href="https://simpfun.cn/console" target="_blank">简幻欢官网</a> 并登录您的账号，然后点击刚才添加的收藏夹，获取token</li>
+                <li>
+                    <input type="text" id="tokenInput" placeholder="粘贴您的Token">
+                    <button onclick="submitTokenAndHideTutorial()">提交 Token 并完成设置</button>
+                </li>
+                <li>返回此页面，配置列表将自动加载</li>
+            </ol>
+            <button onclick="clearToken()">清除 Token</button>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display:none;">正在加载配置列表...</div>
+    <div id="error" class="error" style="display:none;"></div>
+
+    <div class="table-scroll-container">
+        <table id="configTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>CPU等级</th>
+                    <th>供应商</th>
+                    <th>CPU核心数</th>
+                    <th>内存(GB)</th>
+                    <th>磁盘(GB)</th>
+                    <th>流量(GB)</th>
+                    <th>积分</th>
+                    <th>规格</th>
+                    <th>可创建</th>
+                </tr>
+            </thead>
+            <tbody id="configBody"></tbody>
+        </table>
+    </div>
+
+    <!-- 添加刷新按钮 -->
+    <button id="refreshBtn" style="display:none;">刷新实例数据</button>
+    <button id="createBtn" style="display:none;" disabled>创建实例</button>
+    <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
+            <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
+            <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
+            <input type="number" id="intervalInput" min="10" max="300" value="30">
+        </div>
+        <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
+        <div id="result" class="success" style="display:none;"></div>
+</div>
+
+<script>
+/* 全局变量 */
+let selectedConfig = null;
+let token = localStorage.getItem('sf_token');
+let repeatInterval = null;
+let isRepeating = false;
+let repeatCount = 0;
+const isFirstUse = !localStorage.getItem('hasUsedBefore');
+
+/* 教程相关 */
+function toggleTutorial(){
+    document.getElementById('tutorial').classList.toggle('expanded');
+}
+function submitTokenAndHideTutorial(){
+    const val = document.getElementById('tokenInput').value.trim();
+    if(!val){alert('请输入有效的 Token');return;}
+    localStorage.setItem('sf_token',val);
+    localStorage.setItem('hasUsedBefore','true');
+    token = val;
+    alert('Token 已保存！');
+    toggleTutorial();
+    loadConfigs();
+}
+function clearToken(){
+    localStorage.removeItem('sf_token');
+    token = null;
+    document.getElementById('tokenInput').value='';
+    alert('Token 已清除！');
+    document.getElementById('configTable').style.display='none';
+    document.getElementById('createBtn').style.display='none';
+    document.getElementById('result').style.display='none';
+    document.getElementById('tutorial').classList.add('expanded');
+}
+
+/* 排序相关 */
+const gradeOrder=["C+","C++","B-","B","B+","B++","A","S-","S","S+"];
+const specOrder=["M","M+","L","L+","XL","2XL","3XL"];
+let sortKey='', sortAsc=true;
+function getSortValue(item,key){
+    const v=item[key];
+    if(key==='area_grade'){const i=gradeOrder.indexOf(v);return i===-1?999:i;}
+    if(key==='spec'){const i=specOrder.indexOf(v);return i===-1?999:i;}
+    if(key==='creatable')return v?0:1;
+    const n=parseFloat(v);
+    return isNaN(n)?String(v):n;
+}
+function sortData(data,key,asc){
+    return [...data].sort((a,b)=>{
+        const v1=getSortValue(a,key),v2=getSortValue(b,key);
+        if(v1<v2)return asc?-1:1;
+        if(v1>v2)return asc?1:-1;
+        return 0;
+    });
+}
+function toggleSort(key){
+    if(sortKey===key){sortAsc=!sortAsc;}else{sortKey=key;sortAsc=true;}
+    displayConfigs(JSON.parse(localStorage.getItem('cachedConfigs')||'[]'));
+}
+
+/* 渲染表头（点击排序） */
+function renderHeader(columns){
+    const tr=document.createElement('tr');
+    columns.forEach(({header,key})=>{
+        const th=document.createElement('th');
+        th.textContent=header;
+        if(key!==null){
+            th.style.cursor='pointer';
+            th.addEventListener('click',()=>toggleSort(key));
+            if(sortKey===key)th.textContent+=sortAsc?' ▲':' ▼';
+        }
+        tr.appendChild(th);
+    });
+    return tr;
+}
+
+/* 渲染配置列表 */
+function displayConfigs(raw){
+    localStorage.setItem('cachedConfigs',JSON.stringify(raw));
+    const columns=[
+        {header:'ID',key:'id'},
+        {header:'CPU等级',key:'area_grade'},
+        {header:'供应商',key:'area_vendor'},
+        {header:'CPU核心数',key:'cpu'},
+        {header:'内存(GB)',key:'ram'},
+        {header:'磁盘(GB)',key:'disk'},
+        {header:'流量(GB)',key:'traffic'},
+        {header:'积分',key:'point'},
+        {header:'规格',key:'spec'},
+        {header:'可创建',key:'creatable'}
+    ];
+    const data=sortData(raw,sortKey,sortAsc);
+    const thead=document.querySelector('#configTable thead');
+    thead.innerHTML='';
+    thead.appendChild(renderHeader(columns));
+    const tbody=document.getElementById('configBody');
+    tbody.innerHTML='';
+    data.forEach(cfg=>{
+        const tr=document.createElement('tr');
+        if(cfg.creatable)tr.classList.add('creatable-row');
+        tr.innerHTML=`
+            <td>${cfg.id}</td>
+            <td>${cfg.area_grade}</td>
+            <td>${cfg.area_vendor}</td>
+            <td>${cfg.cpu}</td>
+            <td>${cfg.ram}</td>
+            <td>${cfg.disk}</td>
+            <td>${cfg.traffic}</td>
+            <td>${cfg.point}</td>
+            <td>${cfg.spec}</td>
+            <td class="${cfg.creatable?'creatable':'not-creatable'}">${cfg.creatable?'是':'否'}</td>`;
+        if(cfg.creatable){
+            tr.classList.add('creatable-row');
+            tr.addEventListener('click',()=>{
+                selectedConfig=cfg;
+                document.getElementById('createBtn').disabled=false;
+                document.getElementById('createBtn').textContent='创建实例';
+                document.getElementById('intervalControl').style.display='none';
+                tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
+                tr.classList.add('selected');
+            });
+        }else{
+            tr.classList.add('not-creatable-row');
+            tr.addEventListener('click',()=>{
+                selectedConfig=cfg;
+                document.getElementById('createBtn').disabled=false;
+                document.getElementById('createBtn').textContent='开始自动创建';
+                document.getElementById('intervalControl').style.display='block';
+                tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
+                tr.classList.add('selected');
+            });
+        }
+        tbody.appendChild(tr);
+    });
+    document.getElementById('configTable').style.display='table';
+    document.getElementById('createBtn').style.display='block';
+}
+
+/* 拉取配置 */
+async function loadConfigs(){
+    if(!token)return;
+    const load=document.getElementById('loading');
+    const err=document.getElementById('error');
+    load.style.display='block';err.style.display='none';
+    try{
+        const res=await fetch('https://api.simpfun.cn/api/shop/list?version_id=191',{
+            headers:{Authorization:token,Accept:'application/json'}
+        });
+        if(!res.ok)throw new Error('获取配置失败，请检查Token是否正确');
+        const json=await res.json();
+        if(json.code!==200)throw new Error(json.message||'获取配置失败');
+        displayConfigs(json.list);
+    }catch(e){
+        err.textContent=e.message;err.style.display='block';
+        if(e.message.includes('Token')){
+            localStorage.removeItem('sf_token');
+            document.getElementById('tutorial').classList.add('expanded');
+        }
+    }finally{load.style.display='none';}
+}
+
+/* 创建实例 */
+async function createInstance(){
+    if(!selectedConfig)return;
+    const btn=document.getElementById('createBtn');
+    btn.disabled=true;
+    if(isRepeating){
+        btn.textContent='停止';
+        btn.classList.add('stop');
+    }else{
+        btn.textContent='创建中...';
+        btn.classList.remove('stop');
+    }
+    try{
+        if(isRepeating) { repeatCount++; document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount; }
+        const res=await fetch('https://api.simpfun.cn/api/ins/create',{
+        method:'POST',
+        headers:{Authorization:token,'Content-Type':'application/x-www-form-urlencoded'},
+        body:`item_id=${selectedConfig.id}&version_id=191`
+        });
+        const data=await res.json();
+        const result=document.getElementById('result');
+        if(res.ok&&data.code===200){
+            result.innerHTML=`<h3>创建成功！</h3>`;
+            if(isRepeating){
+                clearInterval(repeatInterval);
+                isRepeating = false;
+                btn.textContent='开始自动创建';
+        btn.classList.remove('stop');
+                document.getElementById('intervalControl').style.display='block';
+                document.getElementById('result').style.display = 'none';
+        repeatCount++;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+        document.getElementById('repeatCount').style.display = 'none';
+            }
+        }else{
+            result.innerHTML=`<h3 style="color:red;">创建失败</h3><p>${data.msg}</p>`;
+        }
+        result.style.display='block';
+    }catch(e){
+        document.getElementById('result').innerHTML=`<h3 style="color:red;">请求失败</h3>`;
+        document.getElementById('result').style.display='block';
+}finally{
+        if(!isRepeating){
+            btn.textContent='创建实例';
+            btn.disabled=false;
+        }else{
+            btn.disabled=false;
+        }
+    }
+}
+
+function toggleRepeatCreate(){
+    const btn = document.getElementById('createBtn');
+    if(isRepeating){
+        clearInterval(repeatInterval);
+        isRepeating = false;
+        btn.textContent='开始自动创建';
+        btn.classList.remove('stop');
+        document.getElementById('intervalControl').style.display='block';
+        document.getElementById('result').style.display = 'none';
+        repeatCount++;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+        document.getElementById('repeatCount').style.display = 'none';
+        repeatCount = 0;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+        document.getElementById('repeatCount').style.display = 'none';
+    }else{
+        let interval = parseInt(document.getElementById('intervalInput').value);
+        if (isNaN(interval) || interval < 10) {
+            alert('间隔时间不能小于10秒，已自动调整为10秒');
+            interval = 10;
+        }
+        interval *= 1000;
+        repeatCount = 0;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+        repeatInterval = setInterval(createInstance, interval);
+        isRepeating = true;
+        btn.textContent='停止';
+        btn.classList.add('stop');
+        document.getElementById('intervalControl').style.display='none';
+        document.getElementById('repeatCount').style.display = 'block';
+        createInstance();
+    }
+}
+document.getElementById('createBtn').addEventListener('click',()=>{
+    if(selectedConfig && !selectedConfig.creatable){
+        toggleRepeatCreate();
+    }else{
+        createInstance();
+    }
+});
+
+/* 刷新实例数据 */
+function refreshConfigs() {
+    const result = document.getElementById('result');
+    result.style.display = 'none'; // 隐藏结果提示
+    loadConfigs(); // 调用加载配置的函数
+}
+
+// 为刷新按钮添加点击事件监听器
+document.getElementById('refreshBtn').addEventListener('click', refreshConfigs);
+
+/* 初始化 */
+window.addEventListener('load',()=>{
+    const tut = document.getElementById('tutorial');
+    tut.style.display = 'block';
+    if(isFirstUse || !token){
+        tut.classList.add('expanded');
+    }else{
+        tut.classList.remove('expanded');
+        loadConfigs();
+        // 显示刷新按钮
+        document.getElementById('refreshBtn').style.display = 'block'; 
+    }
+});
+</script>
+</body>
+</html>
