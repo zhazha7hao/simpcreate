@@ -107,6 +107,20 @@
                 </tr>
             </thead>
             <tbody id="configBody"></tbody>
+        <tfoot>
+            <tr>
+                <th>ID</th>
+                <th>CPU等级</th>
+                <th>供应商</th>
+                <th>CPU核心数</th>
+                <th>内存(GB)</th>
+                <th>磁盘(GB)</th>
+                <th>流量(GB)</th>
+                <th>积分</th>
+                <th>规格</th>
+                <th>可创建</th>
+            </tr>
+        </tfoot>
         </table>
     </div>
 
@@ -120,6 +134,9 @@
         </div>
         <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
         <div id="result" class="success" style="display:none;"></div>
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
+        </div>
 </div>
 
 <script>
@@ -197,6 +214,24 @@ function renderHeader(columns){
     return tr;
 }
 
+// 添加页脚排序功能
+function addFooterSorting(columns){
+    const tfoot=document.querySelector('#configTable tfoot');
+    tfoot.innerHTML='';
+    const tr=document.createElement('tr');
+    columns.forEach(({header,key})=>{
+        const th=document.createElement('th');
+        th.textContent=header;
+        if(key!==null){
+            th.style.cursor='pointer';
+            th.addEventListener('click',()=>toggleSort(key));
+            if(sortKey===key)th.textContent+=sortAsc?' ▲':' ▼';
+        }
+        tr.appendChild(th);
+    });
+    tfoot.appendChild(tr);
+}
+
 /* 渲染配置列表 */
 function displayConfigs(raw){
     localStorage.setItem('cachedConfigs',JSON.stringify(raw));
@@ -216,6 +251,7 @@ function displayConfigs(raw){
     const thead=document.querySelector('#configTable thead');
     thead.innerHTML='';
     thead.appendChild(renderHeader(columns));
+    addFooterSorting(columns); // 添加页脚排序
     const tbody=document.getElementById('configBody');
     tbody.innerHTML='';
     data.forEach(cfg=>{
@@ -377,8 +413,23 @@ document.getElementById('createBtn').addEventListener('click',()=>{
 /* 刷新实例数据 */
 function refreshConfigs() {
     const result = document.getElementById('result');
+    const error = document.getElementById('error');
     result.style.display = 'none'; // 隐藏结果提示
-    loadConfigs(); // 调用加载配置的函数
+    error.style.display = 'none'; // 隐藏之前的错误提示
+    loadConfigs()
+        .then(() => {
+            // 添加刷新成功提示
+            result.innerHTML = '<h3>刷新成功！</h3>';
+            result.style.display = 'block';
+            // 3秒后自动隐藏成功提示
+            setTimeout(() => {
+                result.style.display = 'none';
+            }, 3000);
+        })
+        .catch(() => {
+            error.textContent = '刷新实例数据失败，请重试';
+            error.style.display = 'block';
+        });
 }
 
 // 为刷新按钮添加点击事件监听器
