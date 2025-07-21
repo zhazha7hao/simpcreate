@@ -42,16 +42,22 @@
         #refreshBtn {display: none;margin: 20px auto;padding: 15px 40px;font-size: 18px;}
         /* 移动端 */
         @media(max-width:768px){
-            body{padding:5px;overflow-x:hidden;}
+            body{padding:5px;}
             .container{padding:10px;box-sizing:border-box;}
             #tokenInput{width:100%;margin-bottom:10px;box-sizing:border-box;}
-            .table-scroll-container{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;}
+            .table-scroll-container{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;width:100%;}
             table{min-width:max-content;border-collapse:collapse;}
-            th,td{padding:6px 8px;font-size:12px;min-width:80px;white-space:nowrap;box-sizing:border-box;}
-            th{position:sticky;left:0;background:#f8f9fa;z-index:1;}
+            th,td{padding:6px 8px;font-size:12px;white-space:nowrap;}
+            th{background:#f8f9fa;}
             button{padding:6px 12px;font-size:12px;}
             #createBtn{padding:8px 20px;font-size:14px;}
-            #refreshBtn {padding: 8px 20px;font-size: 14px;}
+            #refreshBtn {padding: 8px 20px;font-size:14px;}
+        }
+        
+        /* 小屏幕手机特别优化 */
+        @media(max-width:480px){
+            table{font-size:11px;}
+            th,td{padding:4px 6px;}
         }
         /* 可创建行样式 */
         .creatable-row{background:#e8f5e9;}
@@ -434,6 +440,8 @@ function refreshConfigs() {
 
 // 为刷新按钮添加点击事件监听器
 document.getElementById('refreshBtn').addEventListener('click', refreshConfigs);
+
+
 
 /* 初始化 */
 window.addEventListener('load',()=>{
