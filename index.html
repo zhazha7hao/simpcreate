@@ -146,13 +146,39 @@
 </div>
 
 <script>
+// 辅助函数：设置 cookie
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = `expires=${date.toUTCString()}`;
+    document.cookie = `${name}=${value};${expires};path=/`;
+}
+
+// 辅助函数：获取 cookie
+function getCookie(name) {
+    const cookies = document.cookie.split('; ');
+    for (let i = 0; i < cookies.length; i++) {
+        const parts = cookies[i].split('=');
+        if (parts[0] === name) {
+            return parts[1];
+        }
+    }
+    return null;
+}
+
+// 辅助函数：删除 cookie
+function deleteCookie(name) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
+
 /* 全局变量 */
 let selectedConfig = null;
-let token = localStorage.getItem('sf_token');
+/* 修改为从 cookie 获取 token */
+let token = getCookie('sf_token');
 let repeatInterval = null;
 let isRepeating = false;
 let repeatCount = 0;
-const isFirstUse = !localStorage.getItem('hasUsedBefore');
+const isFirstUse = !getCookie('hasUsedBefore');
 
 /* 教程相关 */
 function toggleTutorial(){
@@ -161,15 +187,17 @@ function toggleTutorial(){
 function submitTokenAndHideTutorial(){
     const val = document.getElementById('tokenInput').value.trim();
     if(!val){alert('请输入有效的 Token');return;}
-    localStorage.setItem('sf_token',val);
-    localStorage.setItem('hasUsedBefore','true');
+    /* 修改为使用 cookie 存储 token */
+    setCookie('sf_token', val, 30); 
+    setCookie('hasUsedBefore', 'true', 30);
     token = val;
     alert('Token 已保存！');
     toggleTutorial();
     loadConfigs();
 }
 function clearToken(){
-    localStorage.removeItem('sf_token');
+    /* 修改为删除 cookie */
+    deleteCookie('sf_token'); 
     token = null;
     document.getElementById('tokenInput').value='';
     alert('Token 已清除！');
@@ -303,13 +331,15 @@ function displayConfigs(raw){
 
 /* 拉取配置 */
 async function loadConfigs(){
-    if(!token)return;
+    /* 修改为从 cookie 获取 token */
+    if(!getCookie('sf_token')) return; 
     const load=document.getElementById('loading');
     const err=document.getElementById('error');
     load.style.display='block';err.style.display='none';
     try{
         const res=await fetch('https://api.simpfun.cn/api/shop/list?version_id=191',{
-            headers:{Authorization:token,Accept:'application/json'}
+            // 修改为从 cookie 获取 token
+            headers:{Authorization:getCookie('sf_token'),Accept:'application/json'} 
         });
         if(!res.ok)throw new Error('获取配置失败，请检查Token是否正确');
         const json=await res.json();
@@ -318,7 +348,8 @@ async function loadConfigs(){
     }catch(e){
         err.textContent=e.message;err.style.display='block';
         if(e.message.includes('Token')){
-            localStorage.removeItem('sf_token');
+            /* 修改为删除 cookie */
+            deleteCookie('sf_token'); 
             document.getElementById('tutorial').classList.add('expanded');
         }
     }finally{load.style.display='none';}
@@ -339,9 +370,10 @@ async function createInstance(){
     try{
         if(isRepeating) { repeatCount++; document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount; }
         const res=await fetch('https://api.simpfun.cn/api/ins/create',{
-        method:'POST',
-        headers:{Authorization:token,'Content-Type':'application/x-www-form-urlencoded'},
-        body:`item_id=${selectedConfig.id}&version_id=191`
+            method:'POST',
+            // 修改为从 cookie 获取 token
+            headers:{Authorization:getCookie('sf_token'),'Content-Type':'application/x-www-form-urlencoded'}, 
+            body:`item_id=${selectedConfig.id}&version_id=191`
         });
         const data=await res.json();
         const result=document.getElementById('result');
@@ -351,12 +383,12 @@ async function createInstance(){
                 clearInterval(repeatInterval);
                 isRepeating = false;
                 btn.textContent='开始自动创建';
-        btn.classList.remove('stop');
+                btn.classList.remove('stop');
                 document.getElementById('intervalControl').style.display='block';
                 document.getElementById('result').style.display = 'none';
-        repeatCount++;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
-        document.getElementById('repeatCount').style.display = 'none';
+                repeatCount++;
+                document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+                document.getElementById('repeatCount').style.display = 'none';
             }
         }else{
             result.innerHTML=`<h3 style="color:red;">创建失败</h3><p>${data.msg}</p>`;
@@ -365,7 +397,7 @@ async function createInstance(){
     }catch(e){
         document.getElementById('result').innerHTML=`<h3 style="color:red;">请求失败</h3>`;
         document.getElementById('result').style.display='block';
-}finally{
+    }finally{
         if(!isRepeating){
             btn.textContent='创建实例';
             btn.disabled=false;
@@ -445,6 +477,7 @@ document.getElementById('refreshBtn').addEventListener('click', refreshConfigs);
 
 /* 初始化 */
 window.addEventListener('load',()=>{
+    localStorage.clear();
     const tut = document.getElementById('tutorial');
     tut.style.display = 'block';
     if(isFirstUse || !token){
