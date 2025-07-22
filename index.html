@@ -132,17 +132,19 @@
 
     <!-- 添加刷新按钮 -->
     <button id="refreshBtn" style="display:none;">刷新实例数据</button>
-    <button id="createBtn" style="display:none;" disabled>创建实例</button>
+    
     <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
-            <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
-            <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
-            <input type="number" id="intervalInput" min="10" max="300" value="30">
-        </div>
-        <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
-        <div id="result" class="success" style="display:none;"></div>
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
-        </div>
+        <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
+        <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
+        <input type="number" id="intervalInput" min="10" max="300" value="30">
+    </div>
+    <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
+    <div id="result" class="success" style="display:none;"></div>
+    <!-- 将创建实例按钮移到结果显示区域下面 -->
+    <button id="createBtn" style="display:none;" disabled>创建实例</button>
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+        <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
+    </div>
 </div>
 
 <script>
@@ -173,14 +175,13 @@ function deleteCookie(name) {
 
 /* 全局变量 */
 let selectedConfig = null;
-/* 修改为从 cookie 获取 token */
 let token = getCookie('sf_token');
 let repeatInterval = null;
 let isRepeating = false;
 let repeatCount = 0;
 const isFirstUse = !getCookie('hasUsedBefore');
 
-/* 教程相关 */
+/* 教程 */
 function toggleTutorial(){
     document.getElementById('tutorial').classList.toggle('expanded');
 }
@@ -331,28 +332,33 @@ function displayConfigs(raw){
 
 /* 拉取配置 */
 async function loadConfigs(){
-    /* 修改为从 cookie 获取 token */
     if(!getCookie('sf_token')) return; 
     const load=document.getElementById('loading');
     const err=document.getElementById('error');
-    load.style.display='block';err.style.display='none';
+    load.style.display='block';
+    err.style.display='none';
     try{
         const res=await fetch('https://api.simpfun.cn/api/shop/list?version_id=191',{
-            // 修改为从 cookie 获取 token
             headers:{Authorization:getCookie('sf_token'),Accept:'application/json'} 
         });
-        if(!res.ok)throw new Error('获取配置失败，请检查Token是否正确');
         const json=await res.json();
-        if(json.code!==200)throw new Error(json.message||'获取配置失败');
+        if(json.code === 400 && json.msg === "账号验证失败") {
+            deleteCookie('sf_token');
+            token = null;
+            document.getElementById('tokenInput').value='';
+            throw new Error('Token 已过期或无效，请重新输入 Token');
+        }
+        if(json.code!==200) throw new Error(json.message||'获取配置失败');
         displayConfigs(json.list);
     }catch(e){
-        err.textContent=e.message;err.style.display='block';
-        if(e.message.includes('Token')){
-            /* 修改为删除 cookie */
-            deleteCookie('sf_token'); 
-            document.getElementById('tutorial').classList.add('expanded');
-        }
-    }finally{load.style.display='none';}
+        // 清除错误元素内容，避免干扰
+        err.textContent = '';
+        err.style.display = 'none';
+        // 抛出错误，让调用者处理
+        throw e;
+    }finally{
+        load.style.display='none';
+    }
 }
 
 /* 创建实例 */
@@ -371,7 +377,6 @@ async function createInstance(){
         if(isRepeating) { repeatCount++; document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount; }
         const res=await fetch('https://api.simpfun.cn/api/ins/create',{
             method:'POST',
-            // 修改为从 cookie 获取 token
             headers:{Authorization:getCookie('sf_token'),'Content-Type':'application/x-www-form-urlencoded'}, 
             body:`item_id=${selectedConfig.id}&version_id=191`
         });
@@ -447,33 +452,51 @@ document.getElementById('createBtn').addEventListener('click',()=>{
         createInstance();
     }
 });
+    // 记录上一次刷新的时间
+    let lastRefreshTime = 0;
+    const refreshInterval = 5000; // 5 秒的间隔时间
+    // 新增标志位，用于控制提示是否正在显示
+    let isMessageShowing = false;
 
-/* 刷新实例数据 */
-function refreshConfigs() {
-    const result = document.getElementById('result');
-    const error = document.getElementById('error');
-    result.style.display = 'none'; // 隐藏结果提示
-    error.style.display = 'none'; // 隐藏之前的错误提示
-    loadConfigs()
-        .then(() => {
-            // 添加刷新成功提示
-            result.innerHTML = '<h3>刷新成功！</h3>';
-            result.style.display = 'block';
-            // 3秒后自动隐藏成功提示
-            setTimeout(() => {
-                result.style.display = 'none';
-            }, 3000);
-        })
-        .catch(() => {
-            error.textContent = '刷新实例数据失败，请重试';
-            error.style.display = 'block';
-        });
-}
+    /* 刷新实例数据 */
+    function refreshConfigs() {
+        const currentTime = Date.now();
+        const messageElement = document.getElementById('result');
+
+        // 如果提示正在显示，直接返回
+        if (isMessageShowing) return;
+
+        messageElement.style.display = 'none'; // 隐藏消息提示
+        messageElement.className = 'success'; // 默认设置为成功样式
+
+        isMessageShowing = true;
+        loadConfigs()
+            .then(() => {
+                // 刷新成功提示
+                messageElement.innerHTML = '<h3>刷新成功！</h3>';
+                messageElement.className = 'success'; // 设置成功样式
+                messageElement.style.display = 'block';
+                // 3 秒后自动隐藏提示
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                    isMessageShowing = false;
+                }, 3000);
+            })
+            .catch((e) => {
+                // 显示错误信息
+                messageElement.innerHTML = `<h3 style="color:red;">刷新失败: ${e.message}</h3>`;
+                messageElement.className = 'error'; // 设置错误样式
+                messageElement.style.display = 'block';
+                // 5 秒后自动隐藏提示
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                    isMessageShowing = false;
+                }, 5000);
+            });
+    }
 
 // 为刷新按钮添加点击事件监听器
 document.getElementById('refreshBtn').addEventListener('click', refreshConfigs);
-
-
 
 /* 初始化 */
 window.addEventListener('load',()=>{
