@@ -394,7 +394,8 @@ async function createInstance(){
     if(!selectedConfig)return;
     const btn=document.getElementById('createBtn');
     btn.disabled=true;
-    if(isRepeating){
+    // 修改为通过 state 对象访问 isRepeating
+    if(state.isRepeating){
         btn.textContent='停止';
         btn.classList.add('stop');
     }else{
@@ -402,7 +403,11 @@ async function createInstance(){
         btn.classList.remove('stop');
     }
     try{
-        if(isRepeating) { repeatCount++; document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount; }
+        // 修改为通过 state 对象访问 isRepeating
+        if(state.isRepeating) { 
+            state.repeatCount++; 
+            document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount; 
+        }
         const res=await fetch('https://api.simpfun.cn/api/ins/create',{
             method:'POST',
             headers:{Authorization:getCookie('sf_token'),'Content-Type':'application/x-www-form-urlencoded'}, 
@@ -412,9 +417,10 @@ async function createInstance(){
         const result=document.getElementById('result');
         if(res.ok&&data.code===200){
             result.innerHTML=`<h3>创建成功！</h3>`;
-            if(isRepeating){
-                clearInterval(repeatInterval);
-                isRepeating = false;
+            // 修改为通过 state 对象访问 isRepeating
+            if(state.isRepeating){
+                clearInterval(state.repeatInterval);
+                state.isRepeating = false;
                 btn.textContent='开始自动创建';
                 btn.classList.remove('stop');
                 document.getElementById('intervalControl').style.display='block';
@@ -442,18 +448,16 @@ async function createInstance(){
 
 function toggleRepeatCreate(){
     const btn = document.getElementById('createBtn');
-    if(isRepeating){
-        clearInterval(repeatInterval);
-        isRepeating = false;
+    // 修改为通过 state 对象访问 isRepeating
+    if(state.isRepeating){
+        clearInterval(state.repeatInterval);
+        state.isRepeating = false;
         btn.textContent='开始自动创建';
         btn.classList.remove('stop');
         document.getElementById('intervalControl').style.display='block';
         document.getElementById('result').style.display = 'none';
-        repeatCount++;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
-        document.getElementById('repeatCount').style.display = 'none';
-        repeatCount = 0;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
+        state.repeatCount = 0;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount;
         document.getElementById('repeatCount').style.display = 'none';
     }else{
         let interval = parseInt(document.getElementById('intervalInput').value);
@@ -462,10 +466,10 @@ function toggleRepeatCreate(){
             interval = 10;
         }
         interval *= 1000;
-        repeatCount = 0;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
-        repeatInterval = setInterval(createInstance, interval);
-        isRepeating = true;
+        state.repeatCount = 0;
+        document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount;
+        state.repeatInterval = setInterval(createInstance, interval);
+        state.isRepeating = true;
         btn.textContent='停止';
         btn.classList.add('stop');
         document.getElementById('intervalControl').style.display='none';
@@ -473,6 +477,7 @@ function toggleRepeatCreate(){
         createInstance();
     }
 }
+
 document.getElementById('createBtn').addEventListener('click',()=>{
     if(selectedConfig && !selectedConfig.creatable){
         toggleRepeatCreate();
