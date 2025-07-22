@@ -135,12 +135,12 @@
     
     <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
         <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
+        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时候，请谨慎使用。</p>
         <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
         <input type="number" id="intervalInput" min="10" max="300" value="30">
     </div>
     <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
     <div id="result" class="success" style="display:none;"></div>
-    <!-- 将创建实例按钮移到结果显示区域下面 -->
     <button id="createBtn" style="display:none;" disabled>创建实例</button>
     <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
         <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
@@ -148,16 +148,17 @@
 </div>
 
 <script>
-// 辅助函数：设置 cookie
-function setCookie(name, value, days) {
+        // ====== 工具函数 ======
+// 设置 cookie
+const setCookie = (name, value, days) => {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = `expires=${date.toUTCString()}`;
     document.cookie = `${name}=${value};${expires};path=/`;
 }
 
-// 辅助函数：获取 cookie
-function getCookie(name) {
+// 获取 cookie
+const getCookie = (name) => {
     const cookies = document.cookie.split('; ');
     for (let i = 0; i < cookies.length; i++) {
         const parts = cookies[i].split('=');
@@ -168,36 +169,63 @@ function getCookie(name) {
     return null;
 }
 
-// 辅助函数：删除 cookie
-function deleteCookie(name) {
+// 删除 cookie
+const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 
-/* 全局变量 */
-let selectedConfig = null;
-let token = getCookie('sf_token');
-let repeatInterval = null;
-let isRepeating = false;
-let repeatCount = 0;
-const isFirstUse = !getCookie('hasUsedBefore');
+// ====== 状态管理 ======
+const state = {
+    selectedConfig: null,
+    token: getCookie('sf_token'),
+    repeatInterval: null,
+    isRepeating: false,
+    repeatCount: 0,
+    isMessageShowing: false
+};
 
-/* 教程 */
+// ====== 配置常量 ======
+const CONFIG = {
+    API_BASE_URL: 'https://api.simpfun.cn/api',
+    VERSION_ID: '191',
+    REFRESH_INTERVAL: 5000,
+    GRADE_ORDER: ["C+","C++","B-","B","B+","B++","A","S-","S","S+"] ,
+    SPEC_ORDER: ["M","M+","L","L+","XL","2XL","3XL"]
+};
+
+// ====== DOM 元素缓存 ======
+const elements = {
+    tutorial: document.getElementById('tutorial'),
+    tokenInput: document.getElementById('tokenInput'),
+    configTable: document.getElementById('configTable'),
+    configBody: document.getElementById('configBody'),
+    createBtn: document.getElementById('createBtn'),
+    result: document.getElementById('result'),
+    loading: document.getElementById('loading'),
+    error: document.getElementById('error'),
+    intervalInput: document.getElementById('intervalInput'),
+    intervalControl: document.getElementById('intervalControl'),
+    repeatCount: document.getElementById('repeatCount'),
+    refreshBtn: document.getElementById('refreshBtn')
+};
+
+// ====== 教程相关 ======
+
 function toggleTutorial(){
     document.getElementById('tutorial').classList.toggle('expanded');
 }
 function submitTokenAndHideTutorial(){
     const val = document.getElementById('tokenInput').value.trim();
     if(!val){alert('请输入有效的 Token');return;}
-    /* 修改为使用 cookie 存储 token */
     setCookie('sf_token', val, 30); 
     setCookie('hasUsedBefore', 'true', 30);
     token = val;
     alert('Token 已保存！');
     toggleTutorial();
     loadConfigs();
+    document.getElementById('refreshBtn').style.display = 'block';
 }
 function clearToken(){
-    /* 修改为删除 cookie */
     deleteCookie('sf_token'); 
     token = null;
     document.getElementById('tokenInput').value='';
@@ -249,7 +277,7 @@ function renderHeader(columns){
     return tr;
 }
 
-// 添加页脚排序功能
+// 页脚排序功能
 function addFooterSorting(columns){
     const tfoot=document.querySelector('#configTable tfoot');
     tfoot.innerHTML='';
@@ -286,7 +314,7 @@ function displayConfigs(raw){
     const thead=document.querySelector('#configTable thead');
     thead.innerHTML='';
     thead.appendChild(renderHeader(columns));
-    addFooterSorting(columns); // 添加页脚排序
+    addFooterSorting(columns);
     const tbody=document.getElementById('configBody');
     tbody.innerHTML='';
     data.forEach(cfg=>{
@@ -452,9 +480,6 @@ document.getElementById('createBtn').addEventListener('click',()=>{
         createInstance();
     }
 });
-    // 记录上一次刷新的时间
-    let lastRefreshTime = 0;
-    const refreshInterval = 5000; // 5 秒的间隔时间
     // 新增标志位，用于控制提示是否正在显示
     let isMessageShowing = false;
 
@@ -485,7 +510,7 @@ document.getElementById('createBtn').addEventListener('click',()=>{
             .catch((e) => {
                 // 显示错误信息
                 messageElement.innerHTML = `<h3 style="color:red;">刷新失败: ${e.message}</h3>`;
-                messageElement.className = 'error'; // 设置错误样式
+                messageElement.className = 'error';
                 messageElement.style.display = 'block';
                 // 5 秒后自动隐藏提示
                 setTimeout(() => {
@@ -503,12 +528,13 @@ window.addEventListener('load',()=>{
     localStorage.clear();
     const tut = document.getElementById('tutorial');
     tut.style.display = 'block';
-    if(isFirstUse || !token){
+    if(!state.token){
+
         tut.classList.add('expanded');
     }else{
         tut.classList.remove('expanded');
         loadConfigs();
-        // 显示刷新按钮
+        document.getElementById('refreshBtn').style.display = 'block';
         document.getElementById('refreshBtn').style.display = 'block'; 
     }
 });
