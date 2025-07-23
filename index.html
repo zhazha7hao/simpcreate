@@ -5,66 +5,286 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>simpcreate</title>
     <style>
-        body{
-            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-            background:#f5f5f5;margin:0;padding:20px;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
         }
-        .container{
-            max-width:1200px;margin:0 auto;background:#fff;border-radius:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,.1);padding:30px;
+        #myInstancesSection {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
         }
-        h1{color:#333;text-align:center;margin-bottom:30px;}
-        .tutorial{background:#e3f2fd;border:1px solid #90caf9;border-radius:5px;padding:10px 20px;margin-bottom:20px;}
-        .tutorial h2{color:#1976d2;margin-top:0;}
-        .bookmarklet{display:inline-block;background:#1976d2;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;cursor:move;font-weight:bold;box-shadow:0 2px 5px rgba(0,0,0,.2);}
-        .bookmarklet:hover{background:#1565c0;}
-        table{width:100%;border-collapse:collapse;margin-top:20px;}
-        th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd;}
-        th{background:#f8f9fa;font-weight:bold;}
-        .creatable{color:green;}
-        .not-creatable{color:red;}
-        button{background:#1976d2;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-size:16px;}
-        button:hover{background:#1565c0;}
-        button:disabled{background:#ccc;cursor:not-allowed;}
-        .loading,.error,.success{text-align:center;margin:20px 0;}
-        .loading{color:#666;font-size:18px;}
-        .error{color:red;}
-        .success{color:green;font-size:18px;}
-        .selected{background:#e8f5e9!important;}
-        #createBtn{display:block;margin:20px auto;padding:15px 40px;font-size:18px;}
-        .tutorial-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
-        .tutorial-content{display:none;font-size:1.1em;}
-        .tutorial.expanded .tutorial-content{display:block;}
-        .toggle-icon{transition:transform .3s;}
-        .tutorial.expanded .toggle-icon{transform:rotate(180deg);}
-        #tokenInput{width:300px;height:30px;font-size:16px;padding:5px 10px;margin-right:10px;}
-        #intervalInput{width:150px;height:40px;font-size:20px;padding:5px 10px;margin-right:10px;}
-        #refreshBtn {display: none;margin: 20px auto;padding: 15px 40px;font-size: 18px;}
+        #myInstancesSection[style*="display: block"] {
+            max-height: 5000px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tutorial {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 5px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+        .tutorial h2 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .bookmarklet {
+            display: inline-block;
+            background: #1976d2;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: move;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+        }
+        .bookmarklet:hover {
+            background: #1565c0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .creatable {
+            color: green;
+        }
+        .not-creatable {
+            color: red;
+        }
+        button {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading, .error, .success {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading {
+            color: #666;
+            font-size: 18px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+            font-size: 18px;
+        }
+        .selected {
+            background: #e8f5e9 !important;
+        }
+        #createBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 40px;
+            font-size: 18px;
+        }
+        .tutorial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .tutorial-content {
+            display: none;
+            font-size: 1.1em;
+        }
+        .tutorial.expanded .tutorial-content {
+            display: block;
+        }
+        .toggle-icon {
+            transition: transform .3s;
+        }
+        .tutorial.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        #tokenInput {
+            width: 300px;
+            height: 30px;
+            font-size: 16px;
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+        #intervalInput {
+            width: 150px;
+            height: 40px;
+            font-size: 20px;
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+        #refreshBtn {
+            display: none;
+            margin: 20px auto;
+            padding: 15px 40px;
+            font-size: 18px;
+        }
+        #intervalInput,
+        #instanceIntervalInput {
+            width: 150px;
+            height: 40px;
+            font-size: 20px;
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
         /* 移动端 */
-        @media(max-width:768px){
-            body{padding:5px;}
-            .container{padding:10px;box-sizing:border-box;}
-            #tokenInput{width:100%;margin-bottom:10px;box-sizing:border-box;}
-            .table-scroll-container{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;width:100%;}
-            table{min-width:max-content;border-collapse:collapse;}
-            th,td{padding:6px 8px;font-size:12px;white-space:nowrap;}
-            th{background:#f8f9fa;}
-            button{padding:6px 12px;font-size:12px;}
-            #createBtn{padding:8px 20px;font-size:14px;}
-            #refreshBtn {padding: 8px 20px;font-size:14px;}
+        @media (max-width:768px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            #tokenInput {
+                width: 100%;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+            }
+            .table-scroll-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 10px;
+                width: 100%;
+            }
+            table {
+                min-width: max-content;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 6px 8px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+            th {
+                background: #f8f9fa;
+            }
+            button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            #createBtn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
+            #refreshBtn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
         }
-        
         /* 小屏幕手机特别优化 */
-        @media(max-width:480px){
-            table{font-size:11px;}
-            th,td{padding:4px 6px;}
+        @media (max-width:480px) {
+            table {
+                font-size: 11px;
+            }
+            th, td {
+                padding: 4px 6px;
+            }
+            #intervalInput,
+            #instanceIntervalInput {
+                width: 100%;
+                box-sizing: border-box;
+                margin-bottom: 10px;
+            }
         }
         /* 可创建行样式 */
-        .creatable-row{background:#e8f5e9;}
-        .creatable-row.selected{background:#c8e6c9!important;}
-        .not-creatable-row.selected{background:#ffcdd2!important;}
-        .stop{background:#ff0000;}
-        .stop:hover{background:#ff0000 !important;}
+        .creatable-row {
+            background: #e8f5e9;
+        }
+        .creatable-row.selected {
+            background: #c8e6c9 !important;
+        }
+        .not-creatable-row.selected {
+            background: #ffcdd2 !important;
+        }
+        .stop {
+            background: #ff0000;
+        }
+        .stop:hover {
+            background: #ff0000 !important;
+        }
+        
+        /* 新增样式用于自动变配按钮 */
+        .auto-reconfig-btn {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+        }
+        .auto-reconfig-btn:hover {
+            background: #1565c0;
+        }
+        .auto-reconfig-btn.stop {
+            background: #ff0000;
+        }
+        .auto-reconfig-btn.stop:hover {
+            background: #ff0000 !important;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width:768px) {
+            .auto-reconfig-btn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
+        }
+        
+        /* 变配控制区域 */
+        .reconfig-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .reconfig-controls > * {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +292,7 @@
     <h1>简欢幻实例创建工具</h1>
 
     <div id="tutorial" class="tutorial">
-        <div class="tutorial-header" onclick="toggleTutorial()">
+        <div class="tutorial-header" onclick="simpCreateApp.toggleTutorial()">
             <h2>首次使用教程</h2>
             <span class="toggle-icon">▼</span>
         </div>
@@ -85,11 +305,11 @@
                 <li>访问 <a href="https://simpfun.cn/console" target="_blank">简幻欢官网</a> 并登录您的账号，然后点击刚才添加的收藏夹，获取token</li>
                 <li>
                     <input type="text" id="tokenInput" placeholder="粘贴您的Token">
-                    <button onclick="submitTokenAndHideTutorial()">提交 Token 并完成设置</button>
+                    <button id="submitTokenBtn">提交 Token 并完成设置</button>
                 </li>
                 <li>返回此页面，配置列表将自动加载</li>
             </ol>
-            <button onclick="clearToken()">清除 Token</button>
+            <button id="clearTokenBtn">清除 Token</button>
         </div>
     </div>
 
@@ -130,419 +350,701 @@
         </table>
     </div>
 
-    <!-- 添加刷新按钮 -->
     <button id="refreshBtn" style="display:none;">刷新实例数据</button>
     
     <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
         <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
         <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时候，请谨慎使用。</p>
         <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
-        <input type="number" id="intervalInput" min="10" max="300" value="30">
+        <input type="number" id="intervalInput" value="30">
     </div>
     <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
     <div id="result" class="success" style="display:none;"></div>
     <button id="createBtn" style="display:none;" disabled>创建实例</button>
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="modeToggle" style="padding: 8px 16px; font-size: 14px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            切换到我的实例模式
+        </button>
+    </div>
+    <div id="myInstancesSection" style="display: none;">
+        <h2 style="margin-top: 40px;">我的实例</h2>
+        <div id="instancesLoading" class="loading" style="display:none;">正在加载实例信息...</div>
+        <div id="instancesError" class="error" style="display:none;"></div>
+        <div class="table-scroll-container">
+            <table id="instancesTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>CPU核心数</th>
+                        <th>内存(GB)</th>
+                        <th>磁盘(GB)</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody id="instancesBody"></tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>名称</th>
+                        <th>CPU核心数</th>
+                        <th>内存(GB)</th>
+                        <th>磁盘(GB)</th>
+                        <th>创建时间</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="reconfig-controls">
+            <button id="reconfigureBtn" style="display: none; padding: 15px 40px;">变配</button>
+            
+            <div id="autoReconfigControl" style="display: none; text-align: center; margin: 20px 0;">
+                <p style="font-size: 16px; color: #666; margin-bottom: 10px;">
+                    设置自动变配间隔时间后，点击“开始自动变配”按钮将按照设定的时间间隔重复发送变配请求。
+                </p>
+                <p style="font-size: 16px; color: red; margin-bottom: 10px;">
+                    风险提示：频繁变配操作可能会导致账号风险，尤其是间隔时间设置过短时，请谨慎使用。
+                </p>
+                <label for="instanceIntervalInput" style="font-size: 20px; margin-bottom: 10px;">
+                    间隔时间(秒):
+                </label>
+                <input type="number" id="instanceIntervalInput" value="30">
+                <button id="autoReconfigureBtn" class="auto-reconfig-btn">
+                    开始自动变配
+                </button>
+            </div>
+        </div>
+        
+        <div id="reconfigureResult" class="success" style="display:none;"></div>
+    </div>
+
     <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
         <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
     </div>
 </div>
 
 <script>
-        // ====== 工具函数 ======
-// 设置 cookie
-const setCookie = (name, value, days) => {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = `expires=${date.toUTCString()}`;
-    document.cookie = `${name}=${value};${expires};path=/`;
-}
+    const simpCreateApp = {
+        // ====== Configuration and State Management ======
+        config: {
+            VERSION_ID: '191',
+            API_BASE: 'https://api.simpfun.cn/api',
+            GRADE_ORDER: ["C+", "C++", "B-", "B", "B+", "B++", "A", "S-", "S", "S+"],
+            SPEC_ORDER: ["M", "M+", "L", "L+", "XL", "2XL", "3XL"],
+            MIN_INTERVAL: 10
+        },
+        state: {
+            token: null,
+            selectedConfig: null,
+            selectedInstanceId: null,
+            isInstanceMode: false,
+            sortKey: '',
+            sortAsc: true,
+            createIntervalId: null,
+            reconfigIntervalId: null,
+            createRepeatCount: 0,
+            isLoadingDetail: false
+        },
+        elements: {},
 
-// 获取 cookie
-const getCookie = (name) => {
-    const cookies = document.cookie.split('; ');
-    for (let i = 0; i < cookies.length; i++) {
-        const parts = cookies[i].split('=');
-        if (parts[0] === name) {
-            return parts[1];
-        }
-    }
-    return null;
-}
+        // ====== Initialization ======
+        init() {
+            this.cacheDOMElements();
+            this.bindEvents();
+            localStorage.clear();
 
-// 删除 cookie
-const deleteCookie = (name) => {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-}
-
-// ====== 状态管理 ======
-const state = {
-    selectedConfig: null,
-    token: getCookie('sf_token'),
-    repeatInterval: null,
-    isRepeating: false,
-    repeatCount: 0,
-    isMessageShowing: false
-};
-
-// ====== 配置常量 ======
-const CONFIG = {
-    API_BASE_URL: 'https://api.simpfun.cn/api',
-    VERSION_ID: '191',
-    REFRESH_INTERVAL: 5000,
-    GRADE_ORDER: ["C+","C++","B-","B","B+","B++","A","S-","S","S+"] ,
-    SPEC_ORDER: ["M","M+","L","L+","XL","2XL","3XL"]
-};
-
-// ====== DOM 元素缓存 ======
-const elements = {
-    tutorial: document.getElementById('tutorial'),
-    tokenInput: document.getElementById('tokenInput'),
-    configTable: document.getElementById('configTable'),
-    configBody: document.getElementById('configBody'),
-    createBtn: document.getElementById('createBtn'),
-    result: document.getElementById('result'),
-    loading: document.getElementById('loading'),
-    error: document.getElementById('error'),
-    intervalInput: document.getElementById('intervalInput'),
-    intervalControl: document.getElementById('intervalControl'),
-    repeatCount: document.getElementById('repeatCount'),
-    refreshBtn: document.getElementById('refreshBtn')
-};
-
-// ====== 教程相关 ======
-
-function toggleTutorial(){
-    document.getElementById('tutorial').classList.toggle('expanded');
-}
-function submitTokenAndHideTutorial(){
-    const val = document.getElementById('tokenInput').value.trim();
-    if(!val){alert('请输入有效的 Token');return;}
-    setCookie('sf_token', val, 30); 
-    setCookie('hasUsedBefore', 'true', 30);
-    token = val;
-    alert('Token 已保存！');
-    toggleTutorial();
-    loadConfigs();
-    document.getElementById('refreshBtn').style.display = 'block';
-}
-function clearToken(){
-    deleteCookie('sf_token'); 
-    token = null;
-    document.getElementById('tokenInput').value='';
-    alert('Token 已清除！');
-    document.getElementById('configTable').style.display='none';
-    document.getElementById('createBtn').style.display='none';
-    document.getElementById('result').style.display='none';
-    document.getElementById('tutorial').classList.add('expanded');
-}
-
-/* 排序相关 */
-const gradeOrder=["C+","C++","B-","B","B+","B++","A","S-","S","S+"];
-const specOrder=["M","M+","L","L+","XL","2XL","3XL"];
-let sortKey='', sortAsc=true;
-function getSortValue(item,key){
-    const v=item[key];
-    if(key==='area_grade'){const i=gradeOrder.indexOf(v);return i===-1?999:i;}
-    if(key==='spec'){const i=specOrder.indexOf(v);return i===-1?999:i;}
-    if(key==='creatable')return v?0:1;
-    const n=parseFloat(v);
-    return isNaN(n)?String(v):n;
-}
-function sortData(data,key,asc){
-    return [...data].sort((a,b)=>{
-        const v1=getSortValue(a,key),v2=getSortValue(b,key);
-        if(v1<v2)return asc?-1:1;
-        if(v1>v2)return asc?1:-1;
-        return 0;
-    });
-}
-function toggleSort(key){
-    if(sortKey===key){sortAsc=!sortAsc;}else{sortKey=key;sortAsc=true;}
-    displayConfigs(JSON.parse(localStorage.getItem('cachedConfigs')||'[]'));
-}
-
-/* 渲染表头（点击排序） */
-function renderHeader(columns){
-    const tr=document.createElement('tr');
-    columns.forEach(({header,key})=>{
-        const th=document.createElement('th');
-        th.textContent=header;
-        if(key!==null){
-            th.style.cursor='pointer';
-            th.addEventListener('click',()=>toggleSort(key));
-            if(sortKey===key)th.textContent+=sortAsc?' ▲':' ▼';
-        }
-        tr.appendChild(th);
-    });
-    return tr;
-}
-
-// 页脚排序功能
-function addFooterSorting(columns){
-    const tfoot=document.querySelector('#configTable tfoot');
-    tfoot.innerHTML='';
-    const tr=document.createElement('tr');
-    columns.forEach(({header,key})=>{
-        const th=document.createElement('th');
-        th.textContent=header;
-        if(key!==null){
-            th.style.cursor='pointer';
-            th.addEventListener('click',()=>toggleSort(key));
-            if(sortKey===key)th.textContent+=sortAsc?' ▲':' ▼';
-        }
-        tr.appendChild(th);
-    });
-    tfoot.appendChild(tr);
-}
-
-/* 渲染配置列表 */
-function displayConfigs(raw){
-    localStorage.setItem('cachedConfigs',JSON.stringify(raw));
-    const columns=[
-        {header:'ID',key:'id'},
-        {header:'CPU等级',key:'area_grade'},
-        {header:'供应商',key:'area_vendor'},
-        {header:'CPU核心数',key:'cpu'},
-        {header:'内存(GB)',key:'ram'},
-        {header:'磁盘(GB)',key:'disk'},
-        {header:'流量(GB)',key:'traffic'},
-        {header:'积分',key:'point'},
-        {header:'规格',key:'spec'},
-        {header:'可创建',key:'creatable'}
-    ];
-    const data=sortData(raw,sortKey,sortAsc);
-    const thead=document.querySelector('#configTable thead');
-    thead.innerHTML='';
-    thead.appendChild(renderHeader(columns));
-    addFooterSorting(columns);
-    const tbody=document.getElementById('configBody');
-    tbody.innerHTML='';
-    data.forEach(cfg=>{
-        const tr=document.createElement('tr');
-        if(cfg.creatable)tr.classList.add('creatable-row');
-        tr.innerHTML=`
-            <td>${cfg.id}</td>
-            <td>${cfg.area_grade}</td>
-            <td>${cfg.area_vendor}</td>
-            <td>${cfg.cpu}</td>
-            <td>${cfg.ram}</td>
-            <td>${cfg.disk}</td>
-            <td>${cfg.traffic}</td>
-            <td>${cfg.point}</td>
-            <td>${cfg.spec}</td>
-            <td class="${cfg.creatable?'creatable':'not-creatable'}">${cfg.creatable?'是':'否'}</td>`;
-        if(cfg.creatable){
-            tr.classList.add('creatable-row');
-            tr.addEventListener('click',()=>{
-                selectedConfig=cfg;
-                document.getElementById('createBtn').disabled=false;
-                document.getElementById('createBtn').textContent='创建实例';
-                document.getElementById('intervalControl').style.display='none';
-                tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
-                tr.classList.add('selected');
-            });
-        }else{
-            tr.classList.add('not-creatable-row');
-            tr.addEventListener('click',()=>{
-                selectedConfig=cfg;
-                document.getElementById('createBtn').disabled=false;
-                document.getElementById('createBtn').textContent='开始自动创建';
-                document.getElementById('intervalControl').style.display='block';
-                tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('selected'));
-                tr.classList.add('selected');
-            });
-        }
-        tbody.appendChild(tr);
-    });
-    document.getElementById('configTable').style.display='table';
-    document.getElementById('createBtn').style.display='block';
-}
-
-/* 拉取配置 */
-async function loadConfigs(){
-    if(!getCookie('sf_token')) return; 
-    const load=document.getElementById('loading');
-    const err=document.getElementById('error');
-    load.style.display='block';
-    err.style.display='none';
-    try{
-        const res=await fetch('https://api.simpfun.cn/api/shop/list?version_id=191',{
-            headers:{Authorization:getCookie('sf_token'),Accept:'application/json'} 
-        });
-        const json=await res.json();
-        if(json.code === 400 && json.msg === "账号验证失败") {
-            deleteCookie('sf_token');
-            token = null;
-            document.getElementById('tokenInput').value='';
-            throw new Error('Token 已过期或无效，请重新输入 Token');
-        }
-        if(json.code!==200) throw new Error(json.message||'获取配置失败');
-        displayConfigs(json.list);
-    }catch(e){
-        // 清除错误元素内容，避免干扰
-        err.textContent = '';
-        err.style.display = 'none';
-        // 抛出错误，让调用者处理
-        throw e;
-    }finally{
-        load.style.display='none';
-    }
-}
-
-/* 创建实例 */
-async function createInstance(){
-    if(!selectedConfig)return;
-    const btn=document.getElementById('createBtn');
-    btn.disabled=true;
-    // 修改为通过 state 对象访问 isRepeating
-    if(state.isRepeating){
-        btn.textContent='停止';
-        btn.classList.add('stop');
-    }else{
-        btn.textContent='创建中...';
-        btn.classList.remove('stop');
-    }
-    try{
-        // 修改为通过 state 对象访问 isRepeating
-        if(state.isRepeating) { 
-            state.repeatCount++; 
-            document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount; 
-        }
-        const res=await fetch('https://api.simpfun.cn/api/ins/create',{
-            method:'POST',
-            headers:{Authorization:getCookie('sf_token'),'Content-Type':'application/x-www-form-urlencoded'}, 
-            body:`item_id=${selectedConfig.id}&version_id=191`
-        });
-        const data=await res.json();
-        const result=document.getElementById('result');
-        if(res.ok&&data.code===200){
-            result.innerHTML=`<h3>创建成功！</h3>`;
-            // 修改为通过 state 对象访问 isRepeating
-            if(state.isRepeating){
-                clearInterval(state.repeatInterval);
-                state.isRepeating = false;
-                btn.textContent='开始自动创建';
-                btn.classList.remove('stop');
-                document.getElementById('intervalControl').style.display='block';
-                document.getElementById('result').style.display = 'none';
-                repeatCount++;
-                document.getElementById('repeatCount').textContent = '重复次数: ' + repeatCount;
-                document.getElementById('repeatCount').style.display = 'none';
+            this.state.token = this.getCookie('sf_token');
+            if (this.state.token) {
+                this.elements.tutorial.classList.remove('expanded');
+                this.elements.refreshBtn.style.display = 'block';
+                this.loadConfigs();
+            } else {
+                this.elements.tutorial.classList.add('expanded');
             }
-        }else{
-            result.innerHTML=`<h3 style="color:red;">创建失败</h3><p>${data.msg}</p>`;
-        }
-        result.style.display='block';
-    }catch(e){
-        document.getElementById('result').innerHTML=`<h3 style="color:red;">请求失败</h3>`;
-        document.getElementById('result').style.display='block';
-    }finally{
-        if(!isRepeating){
-            btn.textContent='创建实例';
-            btn.disabled=false;
-        }else{
-            btn.disabled=false;
-        }
-    }
-}
+        },
 
-function toggleRepeatCreate(){
-    const btn = document.getElementById('createBtn');
-    // 修改为通过 state 对象访问 isRepeating
-    if(state.isRepeating){
-        clearInterval(state.repeatInterval);
-        state.isRepeating = false;
-        btn.textContent='开始自动创建';
-        btn.classList.remove('stop');
-        document.getElementById('intervalControl').style.display='block';
-        document.getElementById('result').style.display = 'none';
-        state.repeatCount = 0;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount;
-        document.getElementById('repeatCount').style.display = 'none';
-    }else{
-        let interval = parseInt(document.getElementById('intervalInput').value);
-        if (isNaN(interval) || interval < 10) {
-            alert('间隔时间不能小于10秒，已自动调整为10秒');
-            interval = 10;
-        }
-        interval *= 1000;
-        state.repeatCount = 0;
-        document.getElementById('repeatCount').textContent = '重复次数: ' + state.repeatCount;
-        state.repeatInterval = setInterval(createInstance, interval);
-        state.isRepeating = true;
-        btn.textContent='停止';
-        btn.classList.add('stop');
-        document.getElementById('intervalControl').style.display='none';
-        document.getElementById('repeatCount').style.display = 'block';
-        createInstance();
-    }
-}
-
-document.getElementById('createBtn').addEventListener('click',()=>{
-    if(selectedConfig && !selectedConfig.creatable){
-        toggleRepeatCreate();
-    }else{
-        createInstance();
-    }
-});
-    // 新增标志位，用于控制提示是否正在显示
-    let isMessageShowing = false;
-
-    /* 刷新实例数据 */
-    function refreshConfigs() {
-        const currentTime = Date.now();
-        const messageElement = document.getElementById('result');
-
-        // 如果提示正在显示，直接返回
-        if (isMessageShowing) return;
-
-        messageElement.style.display = 'none'; // 隐藏消息提示
-        messageElement.className = 'success'; // 默认设置为成功样式
-
-        isMessageShowing = true;
-        loadConfigs()
-            .then(() => {
-                // 刷新成功提示
-                messageElement.innerHTML = '<h3>刷新成功！</h3>';
-                messageElement.className = 'success'; // 设置成功样式
-                messageElement.style.display = 'block';
-                // 3 秒后自动隐藏提示
-                setTimeout(() => {
-                    messageElement.style.display = 'none';
-                    isMessageShowing = false;
-                }, 3000);
-            })
-            .catch((e) => {
-                // 显示错误信息
-                messageElement.innerHTML = `<h3 style="color:red;">刷新失败: ${e.message}</h3>`;
-                messageElement.className = 'error';
-                messageElement.style.display = 'block';
-                // 5 秒后自动隐藏提示
-                setTimeout(() => {
-                    messageElement.style.display = 'none';
-                    isMessageShowing = false;
-                }, 5000);
+        cacheDOMElements() {
+            const ids = [
+                'tutorial', 'tokenInput', 'submitTokenBtn', 'clearTokenBtn', 'loading', 'error',
+                'configTable', 'configBody', 'createBtn', 'refreshBtn', 'intervalControl',
+                'intervalInput', 'repeatCount', 'result', 'modeToggle', 'myInstancesSection',
+                'instancesLoading', 'instancesError', 'instancesTable', 'instancesBody',
+                'reconfigureBtn', 'reconfigureResult', 'autoReconfigControl', 'autoReconfigureBtn',
+                'instanceIntervalInput'
+            ];
+            ids.forEach(id => {
+                this.elements[id] = document.getElementById(id);
             });
-    }
+        },
 
-// 为刷新按钮添加点击事件监听器
-document.getElementById('refreshBtn').addEventListener('click', refreshConfigs);
+        bindEvents() {
+            this.elements.submitTokenBtn.addEventListener('click', () => this.submitToken());
+            this.elements.clearTokenBtn.addEventListener('click', () => this.clearToken());
+            this.elements.createBtn.addEventListener('click', () => this.handleCreateClick());
+            this.elements.refreshBtn.addEventListener('click', () => this.refreshData());
+            this.elements.modeToggle.addEventListener('click', () => this.toggleMode());
+            this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance());
+            this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfigure());
 
-/* 初始化 */
-window.addEventListener('load',()=>{
-    localStorage.clear();
-    const tut = document.getElementById('tutorial');
-    tut.style.display = 'block';
-    if(!state.token){
+            // Add sorting event listeners to table headers
+            const configTableHeaders = this.elements.configTable.querySelectorAll('thead th, tfoot th');
+            configTableHeaders.forEach(th => {
+                const key = this.getHeaderKey(th.textContent);
+                if (key) {
+                    th.style.cursor = 'pointer';
+                    th.addEventListener('click', () => this.toggleSort(key));
+                }
+            });
+        },
+        
+        getHeaderKey(headerText) {
+            const columnMap = {
+                'ID': 'id', 'CPU等级': 'area_grade', '供应商': 'area_vendor',
+                'CPU核心数': 'cpu', '内存(GB)': 'ram', '磁盘(GB)': 'disk',
+                '流量(GB)': 'traffic', '积分': 'point', '规格': 'spec', '可创建': 'creatable'
+            };
+            return columnMap[headerText.replace(/ ▲| ▼/,'').trim()] || null;
+        },
 
-        tut.classList.add('expanded');
-    }else{
-        tut.classList.remove('expanded');
-        loadConfigs();
-        document.getElementById('refreshBtn').style.display = 'block';
-        document.getElementById('refreshBtn').style.display = 'block'; 
-    }
-});
+        // ====== Cookie Management ======
+        setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        },
+
+        getCookie(name) {
+            const cookies = document.cookie.split('; ');
+            for (const cookie of cookies) {
+                const [key, value] = cookie.split('=');
+                if (key === name) return value;
+            }
+            return null;
+        },
+
+        deleteCookie(name) {
+            this.setCookie(name, '', -1);
+        },
+
+        // ====== UI and Display Logic ======
+        toggleTutorial() {
+            this.elements.tutorial.classList.toggle('expanded');
+        },
+
+        showMessage(element, message, type = 'success', duration = 3000) {
+            element.innerHTML = message; // Use innerHTML to allow for simple formatting if needed
+            element.className = type; // 'success', 'error', 'loading'
+            element.style.display = 'block';
+            if (duration > 0) {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, duration);
+            }
+        },
+
+        toggleLoading(isLoading, section = 'main') {
+            const loadingEl = section === 'main' ? this.elements.loading : this.elements.instancesLoading;
+            const errorEl = section === 'main' ? this.elements.error : this.elements.instancesError;
+            loadingEl.style.display = isLoading ? 'block' : 'none';
+            if (isLoading) errorEl.style.display = 'none';
+        },
+        
+        updateReconfigureControls() {
+            if (!this.state.isInstanceMode) {
+                this.elements.reconfigureBtn.style.display = 'none';
+                this.elements.autoReconfigControl.style.display = 'none';
+                return;
+            }
+
+            const canShowControls = this.state.selectedInstanceId && this.state.selectedConfig;
+            if (!canShowControls) {
+                 this.elements.reconfigureBtn.style.display = 'none';
+                 this.elements.autoReconfigControl.style.display = 'none';
+                 return;
+            }
+
+            const isCreatable = this.state.selectedConfig.creatable;
+            this.elements.reconfigureBtn.style.display = isCreatable ? 'block' : 'none';
+            this.elements.autoReconfigControl.style.display = !isCreatable ? 'block' : 'none';
+        },
+
+        // ====== Data Fetching and API Interaction ======
+        async apiFetch(endpoint, options = {}) {
+            const headers = {
+                'Authorization': this.state.token,
+                'Accept': 'application/json',
+                ...options.headers,
+            };
+            const response = await fetch(`${this.config.API_BASE}${endpoint}`, { ...options, headers });
+            
+            if (response.status === 401) {
+                 this.handleTokenError('Token 已过期或无效，请重新输入 Token');
+                 throw new Error('Token validation failed');
+            }
+            
+            const data = await response.json();
+
+            // This handles both !response.ok and server-side errors reported with a 200 status but a non-200 code in the body.
+            if (!response.ok || data.code !== 200) {
+                // The `msg` field from the server is the most likely source of the error details.
+                throw new Error(data.msg || data.message || `HTTP error! status: ${response.status}`);
+            }
+            
+            return data;
+        },
+
+        async loadConfigs() {
+            if (!this.state.token) return;
+            this.toggleLoading(true, 'main');
+            try {
+                const data = await this.apiFetch(`/shop/list?version_id=${this.config.VERSION_ID}`);
+                localStorage.setItem('cachedConfigs', JSON.stringify(data.list));
+                this.renderConfigs(data.list);
+                if (this.state.isInstanceMode) {
+                    this.loadInstances();
+                }
+            } catch (error) {
+                this.showMessage(this.elements.error, `获取配置失败: ${error.message}`, 'error', 5000);
+            } finally {
+                this.toggleLoading(false, 'main');
+            }
+        },
+
+        async loadInstances() {
+            if (!this.state.token) {
+                 this.showMessage(this.elements.instancesError, '请先提交有效的 Token', 'error', 5000);
+                 return;
+            }
+            this.toggleLoading(true, 'instances');
+            try {
+                const data = await this.apiFetch('/ins/list?');
+                this.renderInstances(data.list);
+            } catch (error) {
+                this.showMessage(this.elements.instancesError, `获取实例失败: ${error.message}`, 'error', 5000);
+            } finally {
+                this.toggleLoading(false, 'instances');
+            }
+        },
+        
+        async loadInstanceDetail(instanceId, rowElement) {
+            if (this.state.isLoadingDetail) return;
+            this.state.isLoadingDetail = true;
+
+            document.querySelectorAll('.instance-detail-row').forEach(row => row.remove());
+
+            try {
+                const data = await this.apiFetch(`/ins/${instanceId}/detail`);
+                this.renderInstanceDetail(data.data, rowElement);
+            } catch (error) {
+                this.showMessage(this.elements.instancesError, `获取实例详情失败: ${error.message}`, 'error', 5000);
+            } finally {
+                this.state.isLoadingDetail = false;
+            }
+        },
+
+        // ====== Rendering Logic ======
+        renderConfigs(data) {
+            const sortedData = this.sortData(data, this.state.sortKey, this.state.sortAsc);
+            this.elements.configBody.innerHTML = '';
+            sortedData.forEach(cfg => {
+                const tr = document.createElement('tr');
+                tr.className = cfg.creatable ? 'creatable-row' : 'not-creatable-row';
+                tr.innerHTML = `
+                    <td>${cfg.id}</td>
+                    <td>${cfg.area_grade}</td>
+                    <td>${cfg.area_vendor}</td>
+                    <td>${cfg.cpu}</td>
+                    <td>${cfg.ram}</td>
+                    <td>${cfg.disk}</td>
+                    <td>${cfg.traffic}</td>
+                    <td>${cfg.point}</td>
+                    <td>${cfg.spec}</td>
+                    <td class="${cfg.creatable ? 'creatable' : 'not-creatable'}">${cfg.creatable ? '是' : '否'}</td>`;
+                
+                tr.addEventListener('click', () => {
+                    this.state.selectedConfig = cfg;
+                    this.elements.configBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                    tr.classList.add('selected');
+                    this.elements.createBtn.disabled = false;
+                    this.elements.createBtn.textContent = cfg.creatable ? '创建实例' : '开始自动创建';
+                    this.elements.intervalControl.style.display = !cfg.creatable && !this.state.isInstanceMode ? 'block' : 'none';
+                    this.updateReconfigureControls();
+                });
+                this.elements.configBody.appendChild(tr);
+            });
+            this.elements.configTable.style.display = 'table';
+            this.elements.createBtn.style.display = this.state.isInstanceMode ? 'none' : 'block';
+            this.updateSortHeaders();
+        },
+        
+        renderInstances(instances) {
+            this.elements.instancesBody.innerHTML = '';
+            if (!instances || instances.length === 0) {
+                this.elements.instancesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无实例</td></tr>';
+            } else {
+                instances.forEach(instance => {
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.title = '点击查看实例详情';
+                    tr.innerHTML = `
+                        <td>${instance.id}</td>
+                        <td>${instance.name || '未命名'}</td>
+                        <td>${instance.cpu}</td>
+                        <td>${instance.ram}</td>
+                        <td>${instance.disk}</td>
+                        <td>${new Date(instance.create_time).toLocaleString()}</td>`;
+                    tr.addEventListener('click', () => {
+                        this.state.selectedInstanceId = instance.id;
+                        this.elements.instancesBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                        tr.classList.add('selected');
+                        this.loadInstanceDetail(instance.id, tr);
+                        this.updateReconfigureControls();
+                    });
+                    this.elements.instancesBody.appendChild(tr);
+                });
+            }
+            this.elements.instancesTable.style.display = 'table';
+        },
+        
+        renderInstanceDetail(instance, rowElement) {
+            const cachedConfigs = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
+            const matchingConfig = cachedConfigs.find(cfg => cfg.id == instance.shop_id);
+            const detailRow = document.createElement('tr');
+            detailRow.className = 'instance-detail-row';
+            
+            const detailHtml = `
+                <td colspan="6">
+                    <div class="instance-detail">
+                        <h3>实例详情</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                            <tr>
+                                <th style="padding: 5px; border: 1px solid #ddd;">ID</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">名称</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">状态</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">配置ID</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;" colspan="2">创建时间</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.id}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.name || '未命名'}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.status}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.shop_id || '未知'}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;" colspan="2">${new Date(instance.create_time).toLocaleString()}</td>
+                            </tr>
+                        </table>
+                        ${matchingConfig ? `
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                            <tr>
+                                <th style="padding: 5px; border: 1px solid #ddd;">CPU等级</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">供应商</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">CPU</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">内存</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">磁盘</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">流量</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">积分</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.area_grade}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.area_vendor}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.cpu}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.ram}GB</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.disk}GB</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.traffic}GB</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.point}</td>
+                            </tr>
+                        </table>` : '<p style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">未找到匹配的配置信息</p>'}
+                    </div>
+                </td>`;
+
+            detailRow.innerHTML = detailHtml;
+            rowElement.after(detailRow);
+            detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        },
+        
+        // ====== Sorting Logic ======
+        sortData(data, key, asc) {
+            if (!key) return data;
+            const getSortValue = (item) => {
+                const value = item[key];
+                if (key === 'area_grade') return this.config.GRADE_ORDER.indexOf(value);
+                if (key === 'spec') return this.config.SPEC_ORDER.indexOf(value);
+                if (key === 'creatable') return value ? 0 : 1;
+                const num = parseFloat(value);
+                return isNaN(num) ? String(value) : num;
+            };
+
+            return [...data].sort((a, b) => {
+                const valA = getSortValue(a);
+                const valB = getSortValue(b);
+                if (valA < valB) return asc ? -1 : 1;
+                if (valA > valB) return asc ? 1 : -1;
+                return 0;
+            });
+        },
+        
+        toggleSort(key) {
+            if (this.state.sortKey === key) {
+                this.state.sortAsc = !this.state.sortAsc;
+            } else {
+                this.state.sortKey = key;
+                this.state.sortAsc = true;
+            }
+            const cachedData = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
+            this.renderConfigs(cachedData);
+        },
+
+        updateSortHeaders() {
+            const headers = this.elements.configTable.querySelectorAll('thead th, tfoot th');
+            headers.forEach(th => {
+                let text = th.textContent.replace(/ ▲| ▼/, '');
+                const key = this.getHeaderKey(text);
+                if (this.state.sortKey === key) {
+                    th.textContent = text + (this.state.sortAsc ? ' ▲' : ' ▼');
+                } else {
+                    th.textContent = text;
+                }
+            });
+        },
+
+        submitToken() {
+            const tokenValue = this.elements.tokenInput.value.trim();
+            if (!tokenValue) {
+                alert('请输入有效的 Token');
+                return;
+            }
+            this.setCookie('sf_token', tokenValue, 30);
+            this.state.token = tokenValue;
+            alert('Token 已保存！');
+            this.toggleTutorial();
+            this.elements.refreshBtn.style.display = 'block';
+            this.loadConfigs();
+        },
+
+        clearToken() {
+            this.deleteCookie('sf_token');
+            this.state.token = null;
+            this.elements.tokenInput.value = '';
+            this.elements.configTable.style.display = 'none';
+            this.elements.createBtn.style.display = 'none';
+            this.elements.result.style.display = 'none';
+            this.elements.tutorial.classList.add('expanded');
+            alert('Token 已清除！');
+        },
+        
+        handleTokenError(message) {
+            this.deleteCookie('sf_token');
+            this.state.token = null;
+            this.elements.tokenInput.value = '';
+            this.elements.tutorial.classList.add('expanded');
+            this.showMessage(this.elements.error, message, 'error', 5000);
+        },
+
+        handleCreateClick() {
+            if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
+                this.toggleRepeatCreate();
+            } else {
+                this.createInstance();
+            }
+        },
+
+                async createInstance() {
+            if (!this.state.selectedConfig) return;
+            const btn = this.elements.createBtn;
+            const isRepeating = !!this.state.createIntervalId; 
+            const isStopButton = btn.classList.contains('stop'); 
+            if (!isRepeating || !isStopButton) {
+                btn.disabled = true;
+                btn.textContent = '停止';
+            }
+
+            try {
+                const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
+                await this.apiFetch('/ins/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body,
+                });
+                this.showMessage(this.elements.result, `创建成功！`, 'success', 3000);
+                if (isRepeating) {
+                    this.stopRepeatCreate(true);
+                }
+            } catch (error) {
+                this.showMessage(this.elements.result, `创建失败: ${error.message}`, 'error', 5000);
+            } finally {
+                if (!isRepeating || !isStopButton) {
+                    btn.disabled = false;
+                    if (this.state.selectedConfig) {
+                        if (this.state.selectedConfig.creatable) {
+                            btn.textContent = '创建实例';
+                        } else {
+                            if (!this.state.createIntervalId) {
+                                 btn.textContent = '开始自动创建'; 
+                            }
+                        }
+                    } else {
+                        btn.textContent = '创建实例';
+                    }
+                }
+            }
+        },
+        
+        async reconfigureInstance(isAuto = false) {
+             if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
+                if(!isAuto) alert('请先选择一个实例和目标配置');
+                return;
+            }
+            
+            const btn = isAuto ? this.elements.autoReconfigureBtn : this.elements.reconfigureBtn;
+            const resultEl = this.elements.reconfigureResult;
+            
+            if(!isAuto) {
+                btn.disabled = true;
+                btn.textContent = '处理中...';
+            }
+            this.showMessage(resultEl, '正在提交变配请求...', 'loading', 0);
+
+            try {
+                const body = JSON.stringify({ item_id: this.state.selectedConfig.id });
+                await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: body
+                });
+                this.showMessage(resultEl, '变配请求提交成功！', 'success', 3000);
+                this.loadInstances();
+                if (isAuto && this.state.reconfigIntervalId) {
+                    this.stopAutoReconfigure(true);
+                }
+            } catch (error) {
+                this.showMessage(resultEl, `变配失败: ${error.message}`, 'error', 5000);
+            } finally {
+                if (!isAuto) {
+                     btn.disabled = false;
+                     btn.textContent = '变配';
+                }
+            }
+        },
+
+        toggleRepeatCreate() {
+            if (this.state.createIntervalId) {
+                this.stopRepeatCreate();
+            } else {
+                this.startRepeatCreate();
+            }
+        },
+
+        startRepeatCreate() {
+            let interval = parseInt(this.elements.intervalInput.value, 10);
+            if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
+                alert(`间隔时间不能小于${this.config.MIN_INTERVAL}秒，已自动调整。`);
+                interval = this.config.MIN_INTERVAL;
+                this.elements.intervalInput.value = interval;
+            }
+            
+            this.state.createRepeatCount = 0;
+            this.elements.repeatCount.textContent = `重复次数: 0`;
+            this.elements.repeatCount.style.display = 'block';
+            this.elements.intervalControl.style.display = 'none';
+            this.elements.createBtn.textContent = '停止';
+            this.elements.createBtn.classList.add('stop');
+            
+            this.createInstanceForRepeat();
+            this.state.createIntervalId = setInterval(() => this.createInstanceForRepeat(), interval * 1000);
+        },
+
+        stopRepeatCreate(isSuccess = false) {
+            clearInterval(this.state.createIntervalId);
+            this.state.createIntervalId = null;
+            this.elements.createBtn.textContent = '开始自动创建';
+            this.elements.createBtn.classList.remove('stop');
+            if(!isSuccess) {
+                this.elements.intervalControl.style.display = 'block';
+            }
+            this.elements.repeatCount.style.display = 'none';
+        },
+        
+        createInstanceForRepeat() {
+            this.state.createRepeatCount++;
+            this.elements.repeatCount.textContent = `重复次数: ${this.state.createRepeatCount}`;
+            this.createInstance();
+        },
+
+        toggleAutoReconfigure() {
+            if (this.state.reconfigIntervalId) {
+                this.stopAutoReconfigure();
+            } else {
+                this.startAutoReconfigure();
+            }
+        },
+
+        startAutoReconfigure() {
+            if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
+                alert('请先选择一个实例和目标配置');
+                return;
+            }
+            let interval = parseInt(this.elements.instanceIntervalInput.value, 10);
+            if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
+                alert(`间隔时间不能小于${this.config.MIN_INTERVAL}秒，已自动调整。`);
+                interval = this.config.MIN_INTERVAL;
+                this.elements.instanceIntervalInput.value = interval;
+            }
+
+            const btn = this.elements.autoReconfigureBtn;
+            btn.textContent = '停止';
+            btn.classList.add('stop');
+            this.elements.instanceIntervalInput.disabled = true;
+
+            this.reconfigureInstance(true); // First attempt
+            this.state.reconfigIntervalId = setInterval(() => this.reconfigureInstance(true), interval * 1000);
+        },
+
+        stopAutoReconfigure(isSuccess = false) {
+             clearInterval(this.state.reconfigIntervalId);
+             this.state.reconfigIntervalId = null;
+             const btn = this.elements.autoReconfigureBtn;
+             btn.textContent = '开始自动变配';
+             btn.classList.remove('stop');
+             this.elements.instanceIntervalInput.disabled = false;
+        },
+        
+        async refreshData() {
+            this.showMessage(this.elements.result, '正在刷新...', 'loading', 0);
+            try {
+                await this.loadConfigs();
+                this.showMessage(this.elements.result, '刷新成功！', 'success', 3000);
+            } catch (e) {
+                // Error is already shown by loadConfigs, but we can reset the result message area.
+                this.showMessage(this.elements.result, `刷新失败: ${e.message}`, 'error', 5000);
+            }
+        },
+
+        toggleMode() {
+            this.state.isInstanceMode = !this.state.isInstanceMode;
+            const isInstanceMode = this.state.isInstanceMode;
+
+            this.elements.modeToggle.textContent = isInstanceMode ? '切换到创建实例模式' : '切换到我的实例模式';
+            this.elements.myInstancesSection.style.display = isInstanceMode ? 'block' : 'none';
+            this.elements.createBtn.style.display = isInstanceMode ? 'none' : 'block';
+            
+            this.elements.intervalControl.style.display = 'none';
+            this.elements.repeatCount.style.display = 'none';
+            
+            this.elements.reconfigureBtn.style.display = 'none';
+            this.elements.autoReconfigControl.style.display = 'none';
+
+            if (isInstanceMode) {
+                this.loadInstances();
+            } else {
+                if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
+                    this.elements.intervalControl.style.display = 'block';
+                }
+            }
+        }
+    };
+
+    // ====== App Entry Point ======
+    window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
 </html>
