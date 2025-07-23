@@ -139,12 +139,49 @@
         .tutorial.expanded .toggle-icon {
             transform: rotate(180deg);
         }
+          .token-input-group {
+              display: flex;
+              align-items: center;
+              gap: 0 !important;
+              justify-content: flex-start;
+              margin: 0 !important;
+              padding: 0 !important;
+              position: relative;
+          }
+          #tokenInput {
+              width: 300px;
+              height: 42px;
+              font-size: 16px;
+              padding: 5px 10px;
+              margin: 0 !important;
+              border: none !important;
+              outline: none !important;
+              box-sizing: border-box !important;
+              position: relative;
+              z-index: 1;
+          }
+        #tokenInput,
+        #submitTokenBtn {
+            box-sizing: border-box;
+        }
+          #submitTokenBtn {
+              height: 42px;
+              font-size: 16px;
+              padding: 5px 10px;
+              margin: -2px 0 0 -2px !important;
+              border: none !important;
+              outline: none !important;
+              box-sizing: border-box !important;
+              flex-shrink: 0;
+              position: relative;
+              z-index: 2;
+              background-color: #1976d2;
+              color: white;
+          }
         #tokenInput {
-            width: 300px;
-            height: 30px;
-            font-size: 16px;
-            padding: 5px 10px;
-            margin-right: 10px;
+            border: none;
+            outline: none;
+            flex-shrink: 0;
         }
         #intervalInput {
             width: 150px;
@@ -169,6 +206,9 @@
         }
         /* 移动端 */
         @media (max-width:768px) {
+            .token-input-group {
+                flex-direction: column;
+            }
             body {
                 padding: 5px;
             }
@@ -180,6 +220,20 @@
                 width: 100%;
                 margin-bottom: 10px;
                 box-sizing: border-box;
+            }
+            #submitTokenBtn {
+                margin: 0 !important;
+                width: 100%;
+            }
+            #submitTokenBtn {
+                margin: 10px 0 0 0 !important;
+                display: block;
+                width: 100%;
+            }
+            #submitTokenBtn {
+                display: block;
+                width: 100%;
+                margin: 0 !important;
             }
             .table-scroll-container {
                 overflow-x: auto;
@@ -208,6 +262,10 @@
                 font-size: 14px;
             }
             #refreshBtn {
+                padding: 8px 20px;
+                font-size: 14px;
+            }
+            .auto-reconfig-btn {
                 padding: 8px 20px;
                 font-size: 14px;
             }
@@ -267,14 +325,6 @@
             background: #ff0000 !important;
         }
         
-        /* 移动端适配 */
-        @media (max-width:768px) {
-            .auto-reconfig-btn {
-                padding: 8px 20px;
-                font-size: 14px;
-            }
-        }
-        
         /* 变配控制区域 */
         .reconfig-controls {
             display: flex;
@@ -304,8 +354,7 @@
                 </li>
                 <li>访问 <a href="https://simpfun.cn/console" target="_blank">简幻欢官网</a> 并登录您的账号，然后点击刚才添加的收藏夹，获取token</li>
                 <li>
-                    <input type="text" id="tokenInput" placeholder="粘贴您的Token">
-                    <button id="submitTokenBtn">提交 Token 并完成设置</button>
+                    <div class="token-input-group"><input type="text" id="tokenInput" placeholder="粘贴您的Token"><button id="submitTokenBtn">提交 Token 并完成设置</button></div>
                 </li>
                 <li>返回此页面，配置列表将自动加载</li>
             </ol>
@@ -354,7 +403,7 @@
     
     <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
         <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
-        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时候，请谨慎使用。</p>
+        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时���，请谨慎使用。</p>
         <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
         <input type="number" id="intervalInput" value="30">
     </div>
@@ -401,7 +450,7 @@
             
             <div id="autoReconfigControl" style="display: none; text-align: center; margin: 20px 0;">
                 <p style="font-size: 16px; color: #666; margin-bottom: 10px;">
-                    设置自动变配间隔时间后，点击“开始自动变配”按钮将按照设定的时间间隔重复发送变配请求。
+                    设置自动变配间隔时间间后，点击“开始自动变配”按钮将按照设定的时间间隔重复发送变配请求。
                 </p>
                 <p style="font-size: 16px; color: red; margin-bottom: 10px;">
                     风险提示：频繁变配操作可能会导致账号风险，尤其是间隔时间设置过短时，请谨慎使用。
