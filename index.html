@@ -5,6 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>simpcreate</title>
     <style>
+        .pro-badge {
+            background-color: #1976d2; /* 蓝色背景，与按钮颜色一致 */
+            color: white;             /* 白色文字 */
+            padding: 2px 6px;         /* 添加一些内边距 */
+            border-radius: 4px;       /* 圆角 */
+            font-size: 0.8em;         /* 稍小的字体 */
+            font-weight: bold;        /* 加粗 */
+            vertical-align: top;      /* 与文字顶部对齐 */
+            margin-left: 5px;         /* 与用户名之间留点距离 */
+            display: inline-block;    /* 作为一个独立的块 */
+        }
+        /* 新增：可点击信息的样式 */
+        .clickable-info {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        /* 新增：复制提示的样式 */
+        .copy-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 16px;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f5f5f5;
@@ -301,7 +330,6 @@
         .stop:hover {
             background: #ff0000 !important;
         }
-        
         /* 新增样式用于自动变配按钮 */
         .auto-reconfig-btn {
             background: #1976d2;
@@ -324,7 +352,6 @@
         .auto-reconfig-btn.stop:hover {
             background: #ff0000 !important;
         }
-        
         /* 变配控制区域 */
         .reconfig-controls {
             display: flex;
@@ -340,7 +367,8 @@
 <body>
 <div class="container">
     <h1>简欢幻实例创建工具</h1>
-
+    <!-- 修改：信息展示区域，包含可点击复制功能 -->
+    <div id="userInfo" style="text-align: center; margin-bottom: 20px;"></div>
     <div id="tutorial" class="tutorial">
         <div class="tutorial-header" onclick="simpCreateApp.toggleTutorial()">
             <h2>首次使用教程</h2>
@@ -361,14 +389,11 @@
             <button id="clearTokenBtn">清除 Token</button>
         </div>
     </div>
-
     <div id="loading" class="loading" style="display:none;">正在加载配置列表...</div>
     <div id="error" class="error" style="display:none;"></div>
-
     <div style="text-align: center; margin-bottom: 10px;">
         <a href="https://yuque.com/simpfun/sfe/areas" target="_blank">点击查看实例 CPU 等级说明</a>
     </div>
-
     <div class="table-scroll-container">
         <table id="configTable" style="display:none;">
             <thead>
@@ -402,12 +427,10 @@
         </tfoot>
         </table>
     </div>
-
     <button id="refreshBtn" style="display:none;">刷新实例数据</button>
-    
     <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
         <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
-        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时���，请谨慎使用。</p>
+        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置过低的时，请谨慎使用。</p>
         <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
         <input type="number" id="intervalInput" value="30">
     </div>
@@ -448,10 +471,8 @@
                 </tfoot>
             </table>
         </div>
-        
         <div class="reconfig-controls">
             <button id="reconfigureBtn" style="display: none; padding: 15px 40px;">变配</button>
-            
             <div id="autoReconfigControl" style="display: none; text-align: center; margin: 20px 0;">
                 <p style="font-size: 16px; color: #666; margin-bottom: 10px;">
                     设置自动变配间隔时间间后，点击“开始自动变配”按钮将按照设定的时间间隔重复发送变配请求。
@@ -468,15 +489,12 @@
                 </button>
             </div>
         </div>
-        
         <div id="reconfigureResult" class="success" style="display:none;"></div>
     </div>
-
     <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
         <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
     </div>
 </div>
-
 <script>
     const simpCreateApp = {
         // ====== Configuration and State Management ======
@@ -500,23 +518,48 @@
             isLoadingDetail: false
         },
         elements: {},
-
         // ====== Initialization ======
         init() {
             this.cacheDOMElements();
             this.bindEvents();
             localStorage.clear();
-
             this.state.token = this.getCookie('sf_token');
             if (this.state.token) {
                 this.elements.tutorial.classList.remove('expanded');
                 this.elements.refreshBtn.style.display = 'block';
                 this.loadConfigs();
+                // 调用获取用户信息的函数
+                this.getUserInfo();
             } else {
                 this.elements.tutorial.classList.add('expanded');
             }
         },
-
+        async getUserInfo() {
+            if (!this.state.token) return;
+            try {
+                const response = await fetch("https://api.simpfun.cn/api/auth/info?", {
+                    "headers": {
+                        "accept": "application/json",
+                        "authorization": this.state.token,
+                        "content-type": "application/x-www-form-urlencoded"
+                    },
+                    "method": "GET",
+                    "mode": "cors",
+                    "credentials": "same-origin"
+                });
+                const data = await response.json();
+                if (data.code === 200) {
+                    const info = data.info;
+                    // 格式化为一行显示
+                    const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
+                    // 修改此处的 userInfoHTML，将用户名和 UID 包裹在可点击的 span 中
+                    const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 钻石: ${info.diamond}`;
+                    this.elements.userInfo.innerHTML = userInfoHTML;
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+            }
+        },
         cacheDOMElements() {
             const ids = [
                 'tutorial', 'tokenInput', 'submitTokenBtn', 'clearTokenBtn', 'loading', 'error',
@@ -524,13 +567,13 @@
                 'intervalInput', 'repeatCount', 'result', 'modeToggle', 'myInstancesSection',
                 'instancesLoading', 'instancesError', 'instancesTable', 'instancesBody',
                 'reconfigureBtn', 'reconfigureResult', 'autoReconfigControl', 'autoReconfigureBtn',
-                'instanceIntervalInput'
+                'instanceIntervalInput',
+                'userInfo' // 新增 userInfo 元素缓存
             ];
             ids.forEach(id => {
                 this.elements[id] = document.getElementById(id);
             });
         },
-
         bindEvents() {
             this.elements.submitTokenBtn.addEventListener('click', () => this.submitToken());
             this.elements.clearTokenBtn.addEventListener('click', () => this.clearToken());
@@ -539,6 +582,16 @@
             this.elements.modeToggle.addEventListener('click', () => this.toggleMode());
             this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance());
             this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfigure());
+
+            // 新增：绑定点击复制事件
+            document.addEventListener('click', (event) => {
+                if (event.target.classList.contains('clickable-info')) {
+                    const textToCopy = event.target.getAttribute('data-copy-value');
+                    if (textToCopy) {
+                        this.copyToClipboard(textToCopy);
+                    }
+                }
+            });
 
             // Add sorting event listeners to table headers
             const configTableHeaders = this.elements.configTable.querySelectorAll('thead th, tfoot th');
@@ -550,7 +603,6 @@
                 }
             });
         },
-        
         getHeaderKey(headerText) {
             const columnMap = {
                 'ID': 'id', 'CPU等级': 'area_grade', '供应商': 'area_vendor',
@@ -559,14 +611,45 @@
             };
             return columnMap[headerText.replace(/ ▲| ▼/,'').trim()] || null;
         },
+        // ====== 新增：复制到剪贴板函数 ======
+        copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // 显示复制成功提示
+                this.showCopyHint('已复制: ' + text);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                this.showCopyHint('复制失败');
+            });
+        },
+        // ====== 新增：显示复制提示函数 ======
+        showCopyHint(message) {
+            // 移除任何已存在的提示
+            const existingHint = document.querySelector('.copy-hint');
+            if (existingHint) {
+                existingHint.remove();
+            }
 
+            // 创建新的提示元素
+            const hint = document.createElement('div');
+            hint.className = 'copy-hint';
+            hint.textContent = message;
+
+            // 添加到 body
+            document.body.appendChild(hint);
+
+            // 2秒后移除提示
+            setTimeout(() => {
+                if (hint.parentNode) {
+                    hint.parentNode.removeChild(hint);
+                }
+            }, 2000);
+        },
         // ====== Cookie Management ======
         setCookie(name, value, days) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
         },
-
         getCookie(name) {
             const cookies = document.cookie.split('; ');
             for (const cookie of cookies) {
@@ -575,16 +658,13 @@
             }
             return null;
         },
-
         deleteCookie(name) {
             this.setCookie(name, '', -1);
         },
-
         // ====== UI and Display Logic ======
         toggleTutorial() {
             this.elements.tutorial.classList.toggle('expanded');
         },
-
         showMessage(element, message, type = 'success', duration = 3000) {
             element.innerHTML = message; // Use innerHTML to allow for simple formatting if needed
             element.className = type; // 'success', 'error', 'loading'
@@ -595,33 +675,28 @@
                 }, duration);
             }
         },
-
         toggleLoading(isLoading, section = 'main') {
             const loadingEl = section === 'main' ? this.elements.loading : this.elements.instancesLoading;
             const errorEl = section === 'main' ? this.elements.error : this.elements.instancesError;
             loadingEl.style.display = isLoading ? 'block' : 'none';
             if (isLoading) errorEl.style.display = 'none';
         },
-        
         updateReconfigureControls() {
             if (!this.state.isInstanceMode) {
                 this.elements.reconfigureBtn.style.display = 'none';
                 this.elements.autoReconfigControl.style.display = 'none';
                 return;
             }
-
             const canShowControls = this.state.selectedInstanceId && this.state.selectedConfig;
             if (!canShowControls) {
                  this.elements.reconfigureBtn.style.display = 'none';
                  this.elements.autoReconfigControl.style.display = 'none';
                  return;
             }
-
             const isCreatable = this.state.selectedConfig.creatable;
             this.elements.reconfigureBtn.style.display = isCreatable ? 'block' : 'none';
             this.elements.autoReconfigControl.style.display = !isCreatable ? 'block' : 'none';
         },
-
         // ====== Data Fetching and API Interaction ======
         async apiFetch(endpoint, options = {}) {
             const headers = {
@@ -630,23 +705,18 @@
                 ...options.headers,
             };
             const response = await fetch(`${this.config.API_BASE}${endpoint}`, { ...options, headers });
-            
             if (response.status === 401) {
                  this.handleTokenError('Token 已过期或无效，请重新输入 Token');
                  throw new Error('Token validation failed');
             }
-            
             const data = await response.json();
-
             // This handles both !response.ok and server-side errors reported with a 200 status but a non-200 code in the body.
             if (!response.ok || data.code !== 200) {
                 // The `msg` field from the server is the most likely source of the error details.
                 throw new Error(data.msg || data.message || `HTTP error! status: ${response.status}`);
             }
-            
             return data;
         },
-
         async loadConfigs() {
             if (!this.state.token) return;
             this.toggleLoading(true, 'main');
@@ -663,7 +733,6 @@
                 this.toggleLoading(false, 'main');
             }
         },
-
         async loadInstances() {
             if (!this.state.token) {
                  this.showMessage(this.elements.instancesError, '请先提交有效的 Token', 'error', 5000);
@@ -679,13 +748,10 @@
                 this.toggleLoading(false, 'instances');
             }
         },
-        
         async loadInstanceDetail(instanceId, rowElement) {
             if (this.state.isLoadingDetail) return;
             this.state.isLoadingDetail = true;
-
             document.querySelectorAll('.instance-detail-row').forEach(row => row.remove());
-
             try {
                 const data = await this.apiFetch(`/ins/${instanceId}/detail`);
                 this.renderInstanceDetail(data.data, rowElement);
@@ -695,7 +761,6 @@
                 this.state.isLoadingDetail = false;
             }
         },
-
         // ====== Rendering Logic ======
         renderConfigs(data) {
             const sortedData = this.sortData(data, this.state.sortKey, this.state.sortAsc);
@@ -714,7 +779,6 @@
                     <td>${cfg.point}</td>
                     <td>${cfg.spec}</td>
                     <td class="${cfg.creatable ? 'creatable' : 'not-creatable'}">${cfg.creatable ? '是' : '否'}</td>`;
-                
                 tr.addEventListener('click', () => {
                     this.state.selectedConfig = cfg;
                     this.elements.configBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
@@ -730,7 +794,6 @@
             this.elements.createBtn.style.display = this.state.isInstanceMode ? 'none' : 'block';
             this.updateSortHeaders();
         },
-        
         renderInstances(instances) {
             this.elements.instancesBody.innerHTML = '';
             if (!instances || instances.length === 0) {
@@ -759,13 +822,11 @@
             }
             this.elements.instancesTable.style.display = 'table';
         },
-        
         renderInstanceDetail(instance, rowElement) {
             const cachedConfigs = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
             const matchingConfig = cachedConfigs.find(cfg => cfg.id == instance.shop_id);
             const detailRow = document.createElement('tr');
             detailRow.className = 'instance-detail-row';
-            
             const detailHtml = `
                 <td colspan="6">
                     <div class="instance-detail">
@@ -809,12 +870,10 @@
                         </table>` : '<p style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">未找到匹配的配置信息</p>'}
                     </div>
                 </td>`;
-
             detailRow.innerHTML = detailHtml;
             rowElement.after(detailRow);
             detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
-        
         // ====== Sorting Logic ======
         sortData(data, key, asc) {
             if (!key) return data;
@@ -826,7 +885,6 @@
                 const num = parseFloat(value);
                 return isNaN(num) ? String(value) : num;
             };
-
             return [...data].sort((a, b) => {
                 const valA = getSortValue(a);
                 const valB = getSortValue(b);
@@ -835,7 +893,6 @@
                 return 0;
             });
         },
-        
         toggleSort(key) {
             if (this.state.sortKey === key) {
                 this.state.sortAsc = !this.state.sortAsc;
@@ -846,7 +903,6 @@
             const cachedData = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
             this.renderConfigs(cachedData);
         },
-
         updateSortHeaders() {
             const headers = this.elements.configTable.querySelectorAll('thead th, tfoot th');
             headers.forEach(th => {
@@ -859,7 +915,6 @@
                 }
             });
         },
-
         submitToken() {
             const tokenValue = this.elements.tokenInput.value.trim();
             if (!tokenValue) {
@@ -873,7 +928,6 @@
             this.elements.refreshBtn.style.display = 'block';
             this.loadConfigs();
         },
-
         clearToken() {
             this.deleteCookie('sf_token');
             this.state.token = null;
@@ -884,7 +938,6 @@
             this.elements.tutorial.classList.add('expanded');
             alert('Token 已清除！');
         },
-        
         handleTokenError(message) {
             this.deleteCookie('sf_token');
             this.state.token = null;
@@ -892,7 +945,6 @@
             this.elements.tutorial.classList.add('expanded');
             this.showMessage(this.elements.error, message, 'error', 5000);
         },
-
         handleCreateClick() {
             if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
                 this.toggleRepeatCreate();
@@ -900,17 +952,15 @@
                 this.createInstance();
             }
         },
-
                 async createInstance() {
             if (!this.state.selectedConfig) return;
             const btn = this.elements.createBtn;
-            const isRepeating = !!this.state.createIntervalId; 
-            const isStopButton = btn.classList.contains('stop'); 
+            const isRepeating = !!this.state.createIntervalId;
+            const isStopButton = btn.classList.contains('stop');
             if (!isRepeating || !isStopButton) {
                 btn.disabled = true;
                 btn.textContent = '停止';
             }
-
             try {
                 const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
                 await this.apiFetch('/ins/create', {
@@ -932,7 +982,7 @@
                             btn.textContent = '创建实例';
                         } else {
                             if (!this.state.createIntervalId) {
-                                 btn.textContent = '开始自动创建'; 
+                                 btn.textContent = '开始自动创建';
                             }
                         }
                     } else {
@@ -941,22 +991,18 @@
                 }
             }
         },
-        
         async reconfigureInstance(isAuto = false) {
              if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
                 if(!isAuto) alert('请先选择一个实例和目标配置');
                 return;
             }
-            
             const btn = isAuto ? this.elements.autoReconfigureBtn : this.elements.reconfigureBtn;
             const resultEl = this.elements.reconfigureResult;
-            
             if(!isAuto) {
                 btn.disabled = true;
                 btn.textContent = '处理中...';
             }
             this.showMessage(resultEl, '正在提交变配请求...', 'loading', 0);
-
             try {
                 const body = JSON.stringify({ item_id: this.state.selectedConfig.id });
                 await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
@@ -978,7 +1024,6 @@
                 }
             }
         },
-
         toggleRepeatCreate() {
             if (this.state.createIntervalId) {
                 this.stopRepeatCreate();
@@ -986,7 +1031,6 @@
                 this.startRepeatCreate();
             }
         },
-
         startRepeatCreate() {
             let interval = parseInt(this.elements.intervalInput.value, 10);
             if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
@@ -994,18 +1038,15 @@
                 interval = this.config.MIN_INTERVAL;
                 this.elements.intervalInput.value = interval;
             }
-            
             this.state.createRepeatCount = 0;
             this.elements.repeatCount.textContent = `重复次数: 0`;
             this.elements.repeatCount.style.display = 'block';
             this.elements.intervalControl.style.display = 'none';
             this.elements.createBtn.textContent = '停止';
             this.elements.createBtn.classList.add('stop');
-            
             this.createInstanceForRepeat();
             this.state.createIntervalId = setInterval(() => this.createInstanceForRepeat(), interval * 1000);
         },
-
         stopRepeatCreate(isSuccess = false) {
             clearInterval(this.state.createIntervalId);
             this.state.createIntervalId = null;
@@ -1016,13 +1057,11 @@
             }
             this.elements.repeatCount.style.display = 'none';
         },
-        
         createInstanceForRepeat() {
             this.state.createRepeatCount++;
             this.elements.repeatCount.textContent = `重复次数: ${this.state.createRepeatCount}`;
             this.createInstance();
         },
-
         toggleAutoReconfigure() {
             if (this.state.reconfigIntervalId) {
                 this.stopAutoReconfigure();
@@ -1030,7 +1069,6 @@
                 this.startAutoReconfigure();
             }
         },
-
         startAutoReconfigure() {
             if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
                 alert('请先选择一个实例和目标配置');
@@ -1042,16 +1080,13 @@
                 interval = this.config.MIN_INTERVAL;
                 this.elements.instanceIntervalInput.value = interval;
             }
-
             const btn = this.elements.autoReconfigureBtn;
             btn.textContent = '停止';
             btn.classList.add('stop');
             this.elements.instanceIntervalInput.disabled = true;
-
             this.reconfigureInstance(true); // First attempt
             this.state.reconfigIntervalId = setInterval(() => this.reconfigureInstance(true), interval * 1000);
         },
-
         stopAutoReconfigure(isSuccess = false) {
              clearInterval(this.state.reconfigIntervalId);
              this.state.reconfigIntervalId = null;
@@ -1060,7 +1095,6 @@
              btn.classList.remove('stop');
              this.elements.instanceIntervalInput.disabled = false;
         },
-        
         async refreshData() {
             this.showMessage(this.elements.result, '正在刷新...', 'loading', 0);
             try {
@@ -1071,21 +1105,16 @@
                 this.showMessage(this.elements.result, `刷新失败: ${e.message}`, 'error', 5000);
             }
         },
-
         toggleMode() {
             this.state.isInstanceMode = !this.state.isInstanceMode;
             const isInstanceMode = this.state.isInstanceMode;
-
             this.elements.modeToggle.textContent = isInstanceMode ? '切换到创建实例模式' : '切换到我的实例模式';
             this.elements.myInstancesSection.style.display = isInstanceMode ? 'block' : 'none';
             this.elements.createBtn.style.display = isInstanceMode ? 'none' : 'block';
-            
             this.elements.intervalControl.style.display = 'none';
             this.elements.repeatCount.style.display = 'none';
-            
             this.elements.reconfigureBtn.style.display = 'none';
             this.elements.autoReconfigControl.style.display = 'none';
-
             if (isInstanceMode) {
                 this.loadInstances();
             } else {
@@ -1095,9 +1124,8 @@
             }
         }
     };
-
     // ====== App Entry Point ======
     window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
-</html>
+</html> 
