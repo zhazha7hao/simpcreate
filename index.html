@@ -6,22 +6,20 @@
     <title>simpcreate</title>
     <style>
         .pro-badge {
-            background-color: #1976d2; /* 蓝色背景，与按钮颜色一致 */
-            color: white;             /* 白色文字 */
-            padding: 2px 6px;         /* 添加一些内边距 */
-            border-radius: 4px;       /* 圆角 */
-            font-size: 0.8em;         /* 稍小的字体 */
-            font-weight: bold;        /* 加粗 */
-            vertical-align: top;      /* 与文字顶部对齐 */
-            margin-left: 5px;         /* 与用户名之间留点距离 */
-            display: inline-block;    /* 作为一个独立的块 */
+            background-color: #1976d2;
+            color: white;      
+            padding: 2px 6px;    
+            border-radius: 4px;    
+            font-size: 0.8em;    
+            font-weight: bold;   
+            vertical-align: top; 
+            margin-left: 5px;       
+            display: inline-block;   
         }
-        /* 新增：可点击信息的样式 */
         .clickable-info {
             cursor: pointer;
             text-decoration: underline;
         }
-        /* 新增：复制提示的样式 */
         .copy-hint {
             position: fixed;
             top: 50%;
@@ -330,7 +328,6 @@
         .stop:hover {
             background: #ff0000 !important;
         }
-        /* 新增样式用于自动变配按钮 */
         .auto-reconfig-btn {
             background: #1976d2;
             color: #fff;
@@ -366,8 +363,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>简欢幻实例创建工具</h1>
-    <!-- 修改：信息展示区域，包含可点击复制功能 -->
+    <h1>简欢幻实例创建&变配工具</h1>
     <div id="userInfo" style="text-align: center; margin-bottom: 20px;"></div>
     <div id="tutorial" class="tutorial">
         <div class="tutorial-header" onclick="simpCreateApp.toggleTutorial()">
@@ -497,7 +493,6 @@
 </div>
 <script>
     const simpCreateApp = {
-        // ====== Configuration and State Management ======
         config: {
             VERSION_ID: '191',
             API_BASE: 'https://api.simpfun.cn/api',
@@ -518,7 +513,6 @@
             isLoadingDetail: false
         },
         elements: {},
-        // ====== Initialization ======
         init() {
             this.cacheDOMElements();
             this.bindEvents();
@@ -528,7 +522,6 @@
                 this.elements.tutorial.classList.remove('expanded');
                 this.elements.refreshBtn.style.display = 'block';
                 this.loadConfigs();
-                // 调用获取用户信息的函数
                 this.getUserInfo();
             } else {
                 this.elements.tutorial.classList.add('expanded');
@@ -550,9 +543,7 @@
                 const data = await response.json();
                 if (data.code === 200) {
                     const info = data.info;
-                    // 格式化为一行显示
                     const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
-                    // 修改此处的 userInfoHTML，将用户名和 UID 包裹在可点击的 span 中
                     const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 钻石: ${info.diamond}`;
                     this.elements.userInfo.innerHTML = userInfoHTML;
                 }
@@ -568,7 +559,7 @@
                 'instancesLoading', 'instancesError', 'instancesTable', 'instancesBody',
                 'reconfigureBtn', 'reconfigureResult', 'autoReconfigControl', 'autoReconfigureBtn',
                 'instanceIntervalInput',
-                'userInfo' // 新增 userInfo 元素缓存
+                'userInfo'
             ];
             ids.forEach(id => {
                 this.elements[id] = document.getElementById(id);
@@ -611,7 +602,6 @@
             };
             return columnMap[headerText.replace(/ ▲| ▼/,'').trim()] || null;
         },
-        // ====== 新增：复制到剪贴板函数 ======
         copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 // 显示复制成功提示
@@ -621,7 +611,6 @@
                 this.showCopyHint('复制失败');
             });
         },
-        // ====== 新增：显示复制提示函数 ======
         showCopyHint(message) {
             // 移除任何已存在的提示
             const existingHint = document.querySelector('.copy-hint');
