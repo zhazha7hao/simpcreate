@@ -863,7 +863,6 @@
             rowElement.after(detailRow);
             detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
-        // ====== Sorting Logic ======
         sortData(data, key, asc) {
             if (!key) return data;
             const getSortValue = (item) => {
@@ -1073,7 +1072,7 @@
             btn.textContent = '停止';
             btn.classList.add('stop');
             this.elements.instanceIntervalInput.disabled = true;
-            this.reconfigureInstance(true); // First attempt
+            this.reconfigureInstance(true);
             this.state.reconfigIntervalId = setInterval(() => this.reconfigureInstance(true), interval * 1000);
         },
         stopAutoReconfigure(isSuccess = false) {
@@ -1090,7 +1089,6 @@
                 await this.loadConfigs();
                 this.showMessage(this.elements.result, '刷新成功！', 'success', 3000);
             } catch (e) {
-                // Error is already shown by loadConfigs, but we can reset the result message area.
                 this.showMessage(this.elements.result, `刷新失败: ${e.message}`, 'error', 5000);
             }
         },
@@ -1113,7 +1111,6 @@
             }
         }
     };
-    // ====== App Entry Point ======
     window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
