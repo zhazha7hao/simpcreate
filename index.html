@@ -8,14 +8,14 @@
     <style>
         .pro-badge {
             background-color: #1976d2;
-            color: white;      
-            padding: 2px 6px;    
-            border-radius: 4px;    
-            font-size: 0.8em;    
-            font-weight: bold;   
-            vertical-align: top; 
-            margin-left: 5px;       
-            display: inline-block;   
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            vertical-align: top;
+            margin-left: 5px;
+            display: inline-block;
         }
         .clickable-info {
             cursor: pointer;
@@ -517,13 +517,13 @@
         init() {
             this.cacheDOMElements();
             this.bindEvents();
-            localStorage.clear();
+            // localStorage.clear(); // 考虑是否每次都清除，或仅在特定条件清除
             this.state.token = this.getCookie('sf_token');
             if (this.state.token) {
                 this.elements.tutorial.classList.remove('expanded');
                 this.elements.refreshBtn.style.display = 'block';
-                this.loadConfigs();
-                this.getUserInfo();
+                this.loadConfigs().catch(error => console.error('初始化加载配置失败:', error));
+                this.getUserInfo().catch(error => console.error('初始化获取用户信息失败:', error));
             } else {
                 this.elements.tutorial.classList.add('expanded');
             }
@@ -531,25 +531,15 @@
         async getUserInfo() {
             if (!this.state.token) return;
             try {
-                const response = await fetch("https://api.simpfun.cn/api/auth/info?", {
-                    "headers": {
-                        "accept": "application/json",
-                        "authorization": this.state.token,
-                        "content-type": "application/x-www-form-urlencoded"
-                    },
-                    "method": "GET",
-                    "mode": "cors",
-                    "credentials": "same-origin"
-                });
-                const data = await response.json();
-                if (data.code === 200) {
-                    const info = data.info;
-                    const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
-                    const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 钻石: ${info.diamond}`;
-                    this.elements.userInfo.innerHTML = userInfoHTML;
-                }
+                const data = await this.apiFetch("/auth/info?");
+                const info = data.info;
+                const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
+                const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 钻石: ${info.diamond}`;
+                this.elements.userInfo.innerHTML = userInfoHTML;
             } catch (error) {
                 console.error('获取用户信息失败:', error);
+                // 可以选择显示错误信息给用户
+                // this.showMessage(this.elements.error, `获取用户信息失败: ${error.message}`, 'error', 5000);
             }
         },
         cacheDOMElements() {
@@ -575,7 +565,7 @@
             this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance());
             this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfigure());
 
-            // 新增：绑定点击复制事件
+            // 绑定点击复制事件 (使用事件委托)
             document.addEventListener('click', (event) => {
                 if (event.target.classList.contains('clickable-info')) {
                     const textToCopy = event.target.getAttribute('data-copy-value');
@@ -585,9 +575,9 @@
                 }
             });
 
-            // Add sorting event listeners to table headers
-            const configTableHeaders = this.elements.configTable.querySelectorAll('thead th, tfoot th');
-            configTableHeaders.forEach(th => {
+            // 绑定表格排序事件 (使用事件委托)
+            const sortableHeaders = this.elements.configTable.querySelectorAll('thead th, tfoot th');
+            sortableHeaders.forEach(th => {
                 const key = this.getHeaderKey(th.textContent);
                 if (key) {
                     th.style.cursor = 'pointer';
@@ -596,21 +586,29 @@
             });
         },
         getHeaderKey(headerText) {
+            const cleanText = headerText.replace(/ ▲| ▼/, '').trim();
             const columnMap = {
-                'ID': 'id', 'CPU等级': 'area_grade', '供应商': 'area_vendor',
-                'CPU核心数': 'cpu', '内存(GB)': 'ram', '磁盘(GB)': 'disk',
-                '流量(GB)': 'traffic', '积分': 'point', '规格': 'spec', '可创建': 'creatable'
+                'ID': 'id',
+                'CPU等级': 'area_grade',
+                '供应商': 'area_vendor',
+                'CPU核心数': 'cpu',
+                '内存(GB)': 'ram',
+                '磁盘(GB)': 'disk',
+                '流量(GB)': 'traffic',
+                '积分': 'point',
+                '规格': 'spec',
+                '可创建': 'creatable'
             };
-            return columnMap[headerText.replace(/ ▲| ▼/,'').trim()] || null;
+            return columnMap[cleanText] || null;
         },
-        copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // 显示复制成功提示
-                this.showCopyHint('已复制: ' + text);
-            }).catch(err => {
+        async copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                this.showCopyHint(`已复制: ${text}`);
+            } catch (err) {
                 console.error('复制失败:', err);
                 this.showCopyHint('复制失败');
-            });
+            }
         },
         showCopyHint(message) {
             // 移除任何已存在的提示
@@ -618,15 +616,11 @@
             if (existingHint) {
                 existingHint.remove();
             }
-
             // 创建新的提示元素
             const hint = document.createElement('div');
             hint.className = 'copy-hint';
             hint.textContent = message;
-
-            // 添加到 body
             document.body.appendChild(hint);
-
             // 2秒后移除提示
             setTimeout(() => {
                 if (hint.parentNode) {
@@ -644,7 +638,7 @@
             const cookies = document.cookie.split('; ');
             for (const cookie of cookies) {
                 const [key, value] = cookie.split('=');
-                if (key === name) return value;
+                if (key === name) return decodeURIComponent(value); // 解码 Cookie 值
             }
             return null;
         },
@@ -687,23 +681,26 @@
             this.elements.reconfigureBtn.style.display = isCreatable ? 'block' : 'none';
             this.elements.autoReconfigControl.style.display = !isCreatable ? 'block' : 'none';
         },
-        // ====== Data Fetching and API Interaction ======
         async apiFetch(endpoint, options = {}) {
+            const url = `${this.config.API_BASE}${endpoint}`;
             const headers = {
                 'Authorization': this.state.token,
                 'Accept': 'application/json',
                 ...options.headers,
             };
-            const response = await fetch(`${this.config.API_BASE}${endpoint}`, { ...options, headers });
+            const config = { ...options, headers };
+
+            const response = await fetch(url, config);
             if (response.status === 401) {
                  this.handleTokenError('Token 已过期或无效，请重新输入 Token');
                  throw new Error('Token validation failed');
             }
             const data = await response.json();
-            // This handles both !response.ok and server-side errors reported with a 200 status but a non-200 code in the body.
+            // 处理响应不成功或服务器端错误 (状态码为200但body中code非200)
             if (!response.ok || data.code !== 200) {
-                // The `msg` field from the server is the most likely source of the error details.
-                throw new Error(data.msg || data.message || `HTTP error! status: ${response.status}`);
+                // 优先使用服务器返回的错误信息
+                const errorMessage = data.msg || data.message || `HTTP error! status: ${response.status}`;
+                throw new Error(errorMessage);
             }
             return data;
         },
@@ -718,6 +715,7 @@
                     this.loadInstances();
                 }
             } catch (error) {
+                console.error('获取配置失败:', error); // 记录错误日志
                 this.showMessage(this.elements.error, `获取配置失败: ${error.message}`, 'error', 5000);
             } finally {
                 this.toggleLoading(false, 'main');
@@ -733,6 +731,7 @@
                 const data = await this.apiFetch('/ins/list?');
                 this.renderInstances(data.list);
             } catch (error) {
+                console.error('获取实例失败:', error); // 记录错误日志
                 this.showMessage(this.elements.instancesError, `获取实例失败: ${error.message}`, 'error', 5000);
             } finally {
                 this.toggleLoading(false, 'instances');
@@ -741,11 +740,13 @@
         async loadInstanceDetail(instanceId, rowElement) {
             if (this.state.isLoadingDetail) return;
             this.state.isLoadingDetail = true;
+            // 移除之前可能存在的详情行
             document.querySelectorAll('.instance-detail-row').forEach(row => row.remove());
             try {
                 const data = await this.apiFetch(`/ins/${instanceId}/detail`);
                 this.renderInstanceDetail(data.data, rowElement);
             } catch (error) {
+                console.error('获取实例详情失败:', error); // 记录错误日志
                 this.showMessage(this.elements.instancesError, `获取实例详情失败: ${error.message}`, 'error', 5000);
             } finally {
                 this.state.isLoadingDetail = false;
@@ -754,10 +755,16 @@
         // ====== Rendering Logic ======
         renderConfigs(data) {
             const sortedData = this.sortData(data, this.state.sortKey, this.state.sortAsc);
-            this.elements.configBody.innerHTML = '';
+            const tbody = this.elements.configBody;
+            tbody.innerHTML = ''; // 清空现有内容
+
+            const fragment = document.createDocumentFragment(); // 使用文档片段提高性能 [[7]]
+
             sortedData.forEach(cfg => {
                 const tr = document.createElement('tr');
                 tr.className = cfg.creatable ? 'creatable-row' : 'not-creatable-row';
+
+                // 使用模板字符串简化HTML构建 [[3]]
                 tr.innerHTML = `
                     <td>${cfg.id}</td>
                     <td>${cfg.area_grade}</td>
@@ -769,30 +776,44 @@
                     <td>${cfg.point}</td>
                     <td>${cfg.spec}</td>
                     <td class="${cfg.creatable ? 'creatable' : 'not-creatable'}">${cfg.creatable ? '是' : '否'}</td>`;
+
                 tr.addEventListener('click', () => {
                     this.state.selectedConfig = cfg;
-                    this.elements.configBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                    // 移除所有行的选中状态
+                    tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
                     tr.classList.add('selected');
                     this.elements.createBtn.disabled = false;
                     this.elements.createBtn.textContent = cfg.creatable ? '创建实例' : '开始自动创建';
                     this.elements.intervalControl.style.display = !cfg.creatable && !this.state.isInstanceMode ? 'block' : 'none';
                     this.updateReconfigureControls();
                 });
-                this.elements.configBody.appendChild(tr);
+
+                fragment.appendChild(tr);
             });
+
+            tbody.appendChild(fragment); // 一次性添加所有行
+
             this.elements.configTable.style.display = 'table';
             this.elements.createBtn.style.display = this.state.isInstanceMode ? 'none' : 'block';
             this.updateSortHeaders();
         },
         renderInstances(instances) {
-            this.elements.instancesBody.innerHTML = '';
+            const tbody = this.elements.instancesBody;
+            tbody.innerHTML = ''; // 清空现有内容
+
+            const fragment = document.createDocumentFragment();
+
             if (!instances || instances.length === 0) {
-                this.elements.instancesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无实例</td></tr>';
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="6" style="text-align: center;">暂无实例</td>';
+                fragment.appendChild(tr);
             } else {
                 instances.forEach(instance => {
                     const tr = document.createElement('tr');
                     tr.style.cursor = 'pointer';
                     tr.title = '点击查看实例详情';
+
+                    // 使用模板字符串简化HTML构建 [[3]]
                     tr.innerHTML = `
                         <td>${instance.id}</td>
                         <td>${instance.name || '未命名'}</td>
@@ -800,23 +821,31 @@
                         <td>${instance.ram}</td>
                         <td>${instance.disk}</td>
                         <td>${new Date(instance.create_time).toLocaleString()}</td>`;
+
                     tr.addEventListener('click', () => {
                         this.state.selectedInstanceId = instance.id;
-                        this.elements.instancesBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                        // 移除所有行的选中状态
+                        tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
                         tr.classList.add('selected');
                         this.loadInstanceDetail(instance.id, tr);
                         this.updateReconfigureControls();
                     });
-                    this.elements.instancesBody.appendChild(tr);
+
+                    fragment.appendChild(tr);
                 });
             }
+
+            tbody.appendChild(fragment);
             this.elements.instancesTable.style.display = 'table';
         },
         renderInstanceDetail(instance, rowElement) {
             const cachedConfigs = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
             const matchingConfig = cachedConfigs.find(cfg => cfg.id == instance.shop_id);
+
             const detailRow = document.createElement('tr');
             detailRow.className = 'instance-detail-row';
+
+            // 使用模板字符串构建详情HTML [[3]]
             const detailHtml = `
                 <td colspan="6">
                     <div class="instance-detail">
@@ -860,12 +889,14 @@
                         </table>` : '<p style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">未找到匹配的配置信息</p>'}
                     </div>
                 </td>`;
+
             detailRow.innerHTML = detailHtml;
             rowElement.after(detailRow);
             detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
         sortData(data, key, asc) {
-            if (!key) return data;
+            if (!key) return [...data]; // 如果没有排序键，返回原数据副本
+
             const getSortValue = (item) => {
                 const value = item[key];
                 if (key === 'area_grade') return this.config.GRADE_ORDER.indexOf(value);
@@ -874,6 +905,7 @@
                 const num = parseFloat(value);
                 return isNaN(num) ? String(value) : num;
             };
+
             return [...data].sort((a, b) => {
                 const valA = getSortValue(a);
                 const valB = getSortValue(b);
@@ -910,12 +942,12 @@
                 alert('请输入有效的 Token');
                 return;
             }
-            this.setCookie('sf_token', tokenValue, 30);
+            this.setCookie('sf_token', encodeURIComponent(tokenValue), 30); // 编码 Cookie 值
             this.state.token = tokenValue;
             alert('Token 已保存！');
             this.toggleTutorial();
             this.elements.refreshBtn.style.display = 'block';
-            this.loadConfigs();
+            this.loadConfigs().catch(error => console.error('提交Token后加载配置失败:', error));
         },
         clearToken() {
             this.deleteCookie('sf_token');
@@ -941,15 +973,21 @@
                 this.createInstance();
             }
         },
-                async createInstance() {
+        async createInstance() {
             if (!this.state.selectedConfig) return;
             const btn = this.elements.createBtn;
             const isRepeating = !!this.state.createIntervalId;
-            const isStopButton = btn.classList.contains('stop');
-            if (!isRepeating || !isStopButton) {
+
+            // 优化按钮状态更新逻辑
+            if (!isRepeating) {
                 btn.disabled = true;
-                btn.textContent = '停止';
+                btn.textContent = '处理中...'; // 更明确的状态提示
+            } else if (btn.classList.contains('stop')) {
+                 // 如果是重复创建中的停止按钮点击
+                 this.stopRepeatCreate();
+                 return; // 停止后直接返回，不再执行创建逻辑
             }
+
             try {
                 const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
                 await this.apiFetch('/ins/create', {
@@ -959,25 +997,24 @@
                 });
                 this.showMessage(this.elements.result, `创建成功！`, 'success', 3000);
                 if (isRepeating) {
-                    this.stopRepeatCreate(true);
+                    this.stopRepeatCreate(true); // 成功后停止重复创建
                 }
             } catch (error) {
+                console.error('创建实例失败:', error); // 记录错误日志
                 this.showMessage(this.elements.result, `创建失败: ${error.message}`, 'error', 5000);
+                // 如果是重复创建且失败，可以选择是否停止
+                // if (isRepeating) { this.stopRepeatCreate(); }
             } finally {
-                if (!isRepeating || !isStopButton) {
-                    btn.disabled = false;
-                    if (this.state.selectedConfig) {
-                        if (this.state.selectedConfig.creatable) {
-                            btn.textContent = '创建实例';
-                        } else {
-                            if (!this.state.createIntervalId) {
-                                 btn.textContent = '开始自动创建';
-                            }
-                        }
-                    } else {
-                        btn.textContent = '创建实例';
-                    }
+                // 无论成功还是失败都恢复按钮状态
+                if (!isRepeating) { // 只有非重复创建才需要恢复按钮
+                     btn.disabled = false;
+                     if (this.state.selectedConfig) {
+                         btn.textContent = this.state.selectedConfig.creatable ? '创建实例' : '开始自动创建';
+                     } else {
+                         btn.textContent = '创建实例';
+                     }
                 }
+                // 重复创建的按钮状态由 toggleRepeatCreate 控制
             }
         },
         async reconfigureInstance(isAuto = false) {
@@ -987,11 +1024,13 @@
             }
             const btn = isAuto ? this.elements.autoReconfigureBtn : this.elements.reconfigureBtn;
             const resultEl = this.elements.reconfigureResult;
+
             if(!isAuto) {
                 btn.disabled = true;
-                btn.textContent = '处理中...';
+                btn.textContent = '处理中...'; // 更明确的状态提示
             }
             this.showMessage(resultEl, '正在提交变配请求...', 'loading', 0);
+
             try {
                 const body = JSON.stringify({ item_id: this.state.selectedConfig.id });
                 await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
@@ -1000,17 +1039,21 @@
                     body: body
                 });
                 this.showMessage(resultEl, '变配请求提交成功！', 'success', 3000);
-                this.loadInstances();
+                this.loadInstances(); // 变配成功后刷新实例列表
                 if (isAuto && this.state.reconfigIntervalId) {
-                    this.stopAutoReconfigure(true);
+                    this.stopAutoReconfigure(true); // 成功后停止自动变配
                 }
             } catch (error) {
+                console.error('变配实例失败:', error); // 记录错误日志
                 this.showMessage(resultEl, `变配失败: ${error.message}`, 'error', 5000);
+                // 如果是自动变配且失败，可以选择是否停止
+                // if (isAuto && this.state.reconfigIntervalId) { this.stopAutoReconfigure(); }
             } finally {
                 if (!isAuto) {
                      btn.disabled = false;
                      btn.textContent = '变配';
                 }
+                // 自动变配的按钮状态由 toggleAutoReconfigure 控制
             }
         },
         toggleRepeatCreate() {
@@ -1031,25 +1074,22 @@
             this.elements.repeatCount.textContent = `重复次数: 0`;
             this.elements.repeatCount.style.display = 'block';
             this.elements.intervalControl.style.display = 'none';
-            this.elements.createBtn.textContent = '停止';
-            this.elements.createBtn.classList.add('stop');
-            this.createInstanceForRepeat();
-            this.state.createIntervalId = setInterval(() => this.createInstanceForRepeat(), interval * 1000);
+            const btn = this.elements.createBtn;
+            btn.textContent = '停止';
+            btn.classList.add('stop');
+            this.createInstance(); // 立即执行一次
+            this.state.createIntervalId = setInterval(() => this.createInstance(), interval * 1000);
         },
         stopRepeatCreate(isSuccess = false) {
             clearInterval(this.state.createIntervalId);
             this.state.createIntervalId = null;
-            this.elements.createBtn.textContent = '开始自动创建';
-            this.elements.createBtn.classList.remove('stop');
+            const btn = this.elements.createBtn;
+            btn.textContent = '开始自动创建';
+            btn.classList.remove('stop');
             if(!isSuccess) {
                 this.elements.intervalControl.style.display = 'block';
             }
             this.elements.repeatCount.style.display = 'none';
-        },
-        createInstanceForRepeat() {
-            this.state.createRepeatCount++;
-            this.elements.repeatCount.textContent = `重复次数: ${this.state.createRepeatCount}`;
-            this.createInstance();
         },
         toggleAutoReconfigure() {
             if (this.state.reconfigIntervalId) {
@@ -1073,7 +1113,7 @@
             btn.textContent = '停止';
             btn.classList.add('stop');
             this.elements.instanceIntervalInput.disabled = true;
-            this.reconfigureInstance(true);
+            this.reconfigureInstance(true); // 立即执行一次
             this.state.reconfigIntervalId = setInterval(() => this.reconfigureInstance(true), interval * 1000);
         },
         stopAutoReconfigure(isSuccess = false) {
@@ -1090,6 +1130,7 @@
                 await this.loadConfigs();
                 this.showMessage(this.elements.result, '刷新成功！', 'success', 3000);
             } catch (e) {
+                console.error('刷新数据失败:', e); // 记录错误日志
                 this.showMessage(this.elements.result, `刷新失败: ${e.message}`, 'error', 5000);
             }
         },
@@ -1104,7 +1145,7 @@
             this.elements.reconfigureBtn.style.display = 'none';
             this.elements.autoReconfigControl.style.display = 'none';
             if (isInstanceMode) {
-                this.loadInstances();
+                this.loadInstances().catch(error => console.error('切换模式加载实例失败:', error));
             } else {
                 if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
                     this.elements.intervalControl.style.display = 'block';
@@ -1115,4 +1156,4 @@
     window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
-</html> 
+</html>
