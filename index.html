@@ -969,53 +969,57 @@
         },
         handleCreateClick() {
             if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
-                this.toggleRepeatCreate();
+                this.toggleRepeatCreate(); 
             } else {
-                this.createInstance();
+                this.createInstance(); 
             }
         },
         async createInstance() {
             if (!this.state.selectedConfig) return;
             const btn = this.elements.createBtn;
             const isRepeating = !!this.state.createIntervalId;
-
-            // 优化按钮状态更新逻辑
-            if (!isRepeating) {
+            if (isRepeating) {
+                btn.textContent = '停止';
+                btn.classList.add('stop');
+            } else {
                 btn.disabled = true;
-                btn.textContent = '处理中...'; // 更明确的状态提示
-            } else if (btn.classList.contains('stop')) {
-                 // 如果是重复创建中的停止按钮点击
-                 this.stopRepeatCreate();
-                 return; // 停止后直接返回，不再执行创建逻辑
+                btn.textContent = '处理中...';
             }
 
             try {
                 const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
-                await this.apiFetch('/ins/create', {
+                const response = await fetch(`${this.config.API_BASE}/ins/create`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: body,
+                    headers: {
+                        'Authorization': this.state.token,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: body
                 });
-                this.showMessage(this.elements.result, `创建成功！`, 'success', 3000);
-                if (isRepeating) {
-                    this.stopRepeatCreate(true); // 成功后停止重复创建
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    throw new Error(`Invalid JSON response: ${response.status} ${response.statusText}`);
+                }
+                if (response.ok && data && data.code === 200) {
+                    this.showMessage(this.elements.result, `创建成功！`, 'success', 3000);
+                    if (isRepeating) {
+                        this.stopRepeatCreate(true);
+                    }
+                } else {
+                    const errorMessage = data.msg || data.message || `HTTP error! status: ${response.status}`;
+                    throw new Error(errorMessage);
                 }
             } catch (error) {
-                console.error('创建实例失败:', error); // 记录错误日志
+                console.error('创建实例失败:', error);
                 this.showMessage(this.elements.result, `创建失败: ${error.message}`, 'error', 5000);
-                // 如果是重复创建且失败，可以选择是否停止
-                // if (isRepeating) { this.stopRepeatCreate(); }
             } finally {
-                // 无论成功还是失败都恢复按钮状态
-                if (!isRepeating) { // 只有非重复创建才需要恢复按钮
-                     btn.disabled = false;
-                     if (this.state.selectedConfig) {
-                         btn.textContent = this.state.selectedConfig.creatable ? '创建实例' : '开始自动创建';
-                     } else {
-                         btn.textContent = '创建实例';
-                     }
+                if (!isRepeating) {
+                    btn.disabled = false;
+                    btn.textContent = '停止'
                 }
-                // 重复创建的按钮状态由 toggleRepeatCreate 控制
             }
         },
         async reconfigureInstance(isAuto = false) {
@@ -1078,12 +1082,19 @@
             const btn = this.elements.createBtn;
             btn.textContent = '停止';
             btn.classList.add('stop');
-            this.createInstance(); // 立即执行一次
-            this.state.createIntervalId = setInterval(() => this.createInstance(), interval * 1000);
+            // 立即执行一次
+            this.createInstance(); 
+            this.state.createIntervalId = setInterval(() => {
+                this.createInstance();
+                this.state.createRepeatCount++;
+                this.elements.repeatCount.textContent = `重复次数: ${this.state.createRepeatCount}`;
+            }, interval * 1000);
         },
         stopRepeatCreate(isSuccess = false) {
-            clearInterval(this.state.createIntervalId);
-            this.state.createIntervalId = null;
+            if (this.state.createIntervalId) {
+                clearInterval(this.state.createIntervalId);
+                this.state.createIntervalId = null;
+            }
             const btn = this.elements.createBtn;
             btn.textContent = '开始自动创建';
             btn.classList.remove('stop');
