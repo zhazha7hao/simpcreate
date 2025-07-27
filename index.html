@@ -535,7 +535,7 @@
                 const data = await this.apiFetch("/auth/info?");
                 const info = data.info;
                 const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
-                const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 钻石: ${info.diamond}`;
+                const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 积分: ${info.point} 钻石: ${info.diamond}`;
                 this.elements.userInfo.innerHTML = userInfoHTML;
             } catch (error) {
                 console.error('获取用户信息失败:', error);
@@ -845,8 +845,6 @@
 
             const detailRow = document.createElement('tr');
             detailRow.className = 'instance-detail-row';
-
-            // 使用模板字符串构建详情HTML，仅显示 point、area_grade 和 status 信息
             const detailHtml = `
                 <td colspan="6">
                     <div class="instance-detail">
@@ -924,6 +922,7 @@
             this.toggleTutorial();
             this.elements.refreshBtn.style.display = 'block';
             this.loadConfigs().catch(error => console.error('提交Token后加载配置失败:', error));
+            this.getUserInfo().catch(error => console.error('提交Token后获取用户信息失败:', error)); 
         },
         clearToken() {
             this.deleteCookie('sf_token');
@@ -934,6 +933,7 @@
             this.elements.result.style.display = 'none';
             this.elements.tutorial.classList.add('expanded');
             alert('Token 已清除！');
+            this.elements.userInfo.innerHTML = ''; 
         },
         handleTokenError(message) {
             this.deleteCookie('sf_token');
