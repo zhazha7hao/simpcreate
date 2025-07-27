@@ -590,7 +590,7 @@
             const cleanText = headerText.replace(/ ▲| ▼/, '').trim();
             const columnMap = {
                 'ID': 'id',
-                'CPU等级': 'area_grade',
+                '等级': 'area_grade',
                 '供应商': 'area_vendor',
                 'CPU核心数': 'cpu',
                 '内存(GB)': 'ram',
@@ -846,48 +846,23 @@
             const detailRow = document.createElement('tr');
             detailRow.className = 'instance-detail-row';
 
-            // 使用模板字符串构建详情HTML [[3]]
+            // 使用模板字符串构建详情HTML，仅显示 point、area_grade 和 status 信息
             const detailHtml = `
                 <td colspan="6">
                     <div class="instance-detail">
                         <h3>实例详情</h3>
                         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                             <tr>
-                                <th style="padding: 5px; border: 1px solid #ddd;">ID</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">名称</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">积分</th>
+                                <th style="padding: 5px; border: 1px solid #ddd;">等级</th>
                                 <th style="padding: 5px; border: 1px solid #ddd;">状态</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">配置ID</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;" colspan="2">创建时间</th>
                             </tr>
                             <tr>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.id}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.name || '未命名'}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.point}</td>
+                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.area_grade}</td>
                                 <td style="padding: 5px; border: 1px solid #ddd;">${instance.status}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.shop_id || '未知'}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;" colspan="2">${new Date(instance.create_time).toLocaleString()}</td>
                             </tr>
                         </table>
-                        ${matchingConfig ? `
-                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                            <tr>
-                                <th style="padding: 5px; border: 1px solid #ddd;">CPU等级</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">供应商</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">CPU</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">内存</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">磁盘</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">流量</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">积分</th>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.area_grade}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.area_vendor}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.cpu}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.ram}GB</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.disk}GB</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.traffic}GB</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${matchingConfig.point}</td>
-                            </tr>
-                        </table>` : '<p style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">未找到匹配的配置信息</p>'}
                     </div>
                 </td>`;
 
