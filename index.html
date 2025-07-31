@@ -539,8 +539,8 @@
                 this.elements.userInfo.innerHTML = userInfoHTML;
             } catch (error) {
                 console.error('获取用户信息失败:', error);
-                // 可以选择显示错误信息给用户
-                // this.showMessage(this.elements.error, `获取用户信息失败: ${error.message}`, 'error', 5000);
+                // 当获取用户信息失败时，也提示token失效
+                this.handleTokenError('Token 已过期或无效，请重新输入 Token');
             }
         },
         cacheDOMElements() {
@@ -1007,7 +1007,7 @@
 
             if(!isAuto) {
                 btn.disabled = true;
-                btn.textContent = '处理中...'; // 更明确的状态提示
+                btn.textContent = '处理中...'; 
             }
             this.showMessage(resultEl, '正在提交变配请求...', 'loading', 0);
 
@@ -1026,14 +1026,11 @@
             } catch (error) {
                 console.error('变配实例失败:', error); // 记录错误日志
                 this.showMessage(resultEl, `变配失败: ${error.message}`, 'error', 5000);
-                // 如果是自动变配且失败，可以选择是否停止
-                // if (isAuto && this.state.reconfigIntervalId) { this.stopAutoReconfigure(); }
             } finally {
                 if (!isAuto) {
                      btn.disabled = false;
                      btn.textContent = '变配';
                 }
-                // 自动变配的按钮状态由 toggleAutoReconfigure 控制
             }
         },
         toggleRepeatCreate() {
