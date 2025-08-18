@@ -590,7 +590,7 @@
             const cleanText = headerText.replace(/ ▲| ▼/, '').trim();
             const columnMap = {
                 'ID': 'id',
-                '等级': 'area_grade',
+                'CPU等级': 'area_grade',
                 '供应商': 'area_vendor',
                 'CPU核心数': 'cpu',
                 '内存(GB)': 'ram',
@@ -755,6 +755,11 @@
         },
         // ====== Rendering Logic ======
         renderConfigs(data) {
+            // 设置默认排序为CPU等级从低到高
+            if (!this.state.sortKey) {
+                this.state.sortKey = 'area_grade';
+                this.state.sortAsc = true;
+            }
             const sortedData = this.sortData(data, this.state.sortKey, this.state.sortAsc);
             const tbody = this.elements.configBody;
             tbody.innerHTML = ''; // 清空现有内容
