@@ -206,7 +206,7 @@
             min-width: 1000px; 
         }
 
-        thead th {
+        thead th, tfoot th {
             background: #f8f9fa;
             padding: 12px;
             text-align: left;
@@ -214,14 +214,24 @@
             color: var(--text-sec);
             border-bottom: 2px solid var(--border);
             position: sticky;
-            top: 0;
-            z-index: 10;
             font-size: 14px;
             white-space: nowrap;
         }
 
-        thead th.sortable { cursor: pointer; user-select: none; }
-        thead th.sortable:hover { background: #eeeeee; }
+        thead th {
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid var(--border);
+        }
+
+        tfoot th {
+            bottom: 0;
+            z-index: 10;
+            border-top: 2px solid var(--border);
+        }
+
+        thead th.sortable, tfoot th.sortable { cursor: pointer; user-select: none; }
+        thead th.sortable:hover, tfoot th.sortable:hover { background: #eeeeee; }
         
         /* Sort Icons */
         .sort-icon {
@@ -480,6 +490,20 @@
                         </tr>
                     </thead>
                     <tbody id="configBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="sortable" data-key="id">ID</th>
+                            <th class="sortable" data-key="area_grade">CPU等级</th>
+                            <th class="sortable" data-key="area_vendor">供应商</th>
+                            <th class="sortable" data-key="cpu">CPU核心</th>
+                            <th class="sortable" data-key="ram">内存</th>
+                            <th class="sortable" data-key="disk">磁盘</th>
+                            <th class="sortable" data-key="traffic">流量</th>
+                            <th class="sortable" data-key="point">积分</th>
+                            <th class="sortable" data-key="spec">规格</th>
+                            <th>状态</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
@@ -534,6 +558,19 @@
                         </tr>
                     </thead>
                     <tbody id="instancesBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="sortable" data-key="id">实例ID</th>
+                            <th class="sortable" data-key="shop_id">配置ID</th>
+                            <th class="sortable" data-key="area_grade">当前实例类型</th>
+                            <!-- 供应商列已移除 -->
+                            <th class="sortable" data-key="cpu">CPU核心</th>
+                            <th class="sortable" data-key="ram">内存</th>
+                            <th class="sortable" data-key="disk">磁盘</th>
+                            <th class="sortable" data-key="traffic">剩余流量/总流量</th>
+                            <th class="sortable" data-key="point">积分</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
