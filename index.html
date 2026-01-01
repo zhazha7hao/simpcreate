@@ -30,6 +30,7 @@
             padding: 20px;
             color: var(--text-main);
             line-height: 1.6;
+            font-size: 16px;
         }
 
         .container {
@@ -41,32 +42,32 @@
         header {
             background: var(--bg-card);
             border-radius: var(--radius);
-            padding: 20px 30px;
+            padding: 24px 36px;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
         }
 
-        h1 { margin: 0; font-size: 1.5rem; color: var(--text-main); }
+        h1 { margin: 0; font-size: 1.75rem; color: var(--text-main); }
 
         .user-info {
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             color: var(--text-sec);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .pro-badge {
             background: linear-gradient(135deg, #1976d2, #42a5f5);
             color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 0.85rem;
             font-weight: bold;
         }
 
@@ -74,9 +75,9 @@
         .card {
             background: var(--bg-card);
             border-radius: var(--radius);
-            padding: 25px;
+            padding: 30px;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             animation: fadeIn 0.3s ease-out;
         }
 
@@ -93,37 +94,37 @@
             cursor: pointer;
             user-select: none;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
         }
         
         .tutorial-content {
             display: none;
-            padding: 10px 0;
+            padding: 12px 0;
         }
         
         .tutorial.expanded .tutorial-content { display: block; }
         .tutorial.expanded .toggle-icon { transform: rotate(180deg); }
         
-        .toggle-icon { transition: transform 0.3s; color: var(--text-sec); }
+        .toggle-icon { transition: transform 0.3s; color: var(--text-sec); font-size: 1rem; }
 
-        ol { padding-left: 20px; color: var(--text-sec); }
-        li { margin-bottom: 10px; }
+        ol { padding-left: 24px; color: var(--text-sec); font-size: 1rem; }
+        li { margin-bottom: 12px; }
 
         /* Inputs & Buttons */
         .input-group {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            max-width: 500px;
+            gap: 12px;
+            margin-top: 18px;
+            max-width: 600px;
         }
 
         input[type="text"], input[type="number"], input[type="password"] {
             flex: 1;
-            padding: 10px 15px;
+            padding: 12px 18px;
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             transition: border-color 0.2s;
         }
 
@@ -133,10 +134,10 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 500;
             transition: background 0.2s, transform 0.1s;
             white-space: nowrap;
@@ -157,28 +158,28 @@
             display: inline-block;
             background: var(--text-main);
             color: #fff;
-            padding: 5px 15px;
+            padding: 6px 18px;
             border-radius: 4px;
             text-decoration: none;
-            font-size: 12px;
-            margin-left: 5px;
+            font-size: 14px;
+            margin-left: 8px;
         }
 
         /* Mode Switcher */
         .mode-switch {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             background: #e0e0e0;
             border-radius: 8px;
-            padding: 4px;
+            padding: 6px;
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
         }
 
         .mode-btn {
-            padding: 8px 24px;
+            padding: 10px 28px;
             border-radius: 6px;
             background: transparent;
             color: var(--text-sec);
@@ -196,26 +197,26 @@
             overflow-x: auto;
             border: 1px solid var(--border);
             border-radius: 8px;
-            max-height: 600px;
+            max-height: 700px;
             overflow-y: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1000px; 
+            min-width: 1100px;
         }
 
         thead th, tfoot th {
             background: #f8f9fa;
-            padding: 12px;
+            padding: 14px 16px;
             text-align: left;
             font-weight: 600;
             color: var(--text-sec);
-            border-bottom: 2px solid var(--border);
             position: sticky;
-            font-size: 14px;
+            font-size: 16px;
             white-space: nowrap;
+            box-sizing: border-box;
         }
 
         thead th {
@@ -228,6 +229,7 @@
             bottom: 0;
             z-index: 10;
             border-top: 2px solid var(--border);
+            border-bottom: none;
         }
 
         thead th.sortable, tfoot th.sortable { cursor: pointer; user-select: none; }
@@ -236,8 +238,8 @@
         /* Sort Icons */
         .sort-icon {
             display: inline-block;
-            margin-left: 5px;
-            font-size: 12px;
+            margin-left: 8px;
+            font-size: 14px;
             vertical-align: middle;
         }
         .sort-icon.primary {
@@ -247,16 +249,16 @@
         }
         .sort-icon.secondary {
             color: var(--text-sec);
-            opacity: 0.7; /* Slightly increased opacity for better visibility */
-            font-size: 10px;
-            margin-left: 2px;
+            opacity: 0.7;
+            font-size: 12px;
+            margin-left: 4px;
         }
 
         td {
-            padding: 10px 12px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             color: var(--text-sec);
-            font-size: 14px;
+            font-size: 16px;
         }
 
         tbody tr { cursor: pointer; transition: background 0.2s; }
@@ -265,9 +267,9 @@
         tbody tr.creatable-row { background: rgba(46, 125, 50, 0.05); }
         
         .status-tag {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: bold;
         }
         .status-yes { color: var(--success); background: #e8f5e9; }
@@ -276,66 +278,66 @@
         /* Actions Panel */
         .actions-panel {
             text-align: center;
-            padding: 20px;
+            padding: 24px;
             background: #fafafa;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 24px;
             border: 1px dashed var(--border);
         }
 
-        .actions-panel p { margin: 5px 0; font-size: 14px; color: var(--text-sec); }
+        .actions-panel p { margin: 8px 0; font-size: 16px; color: var(--text-sec); }
         
         .main-action-btn {
-            padding: 12px 40px;
-            font-size: 16px;
-            margin-top: 15px;
+            padding: 14px 48px;
+            font-size: 18px;
+            margin-top: 18px;
         }
 
         .action-buttons-group {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 20px;
+            margin-top: 18px;
             flex-wrap: wrap;
         }
 
         .create-mode-toggle {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            gap: 24px;
+            margin-bottom: 18px;
+            font-size: 16px;
         }
         .create-mode-toggle label {
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
         /* Toast Notifications */
         #toast-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 24px;
+            right: 24px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .toast {
-            min-width: 250px;
-            padding: 15px 20px;
+            min-width: 300px;
+            padding: 18px 24px;
             background: white;
-            border-left: 5px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border-radius: 4px;
+            border-left: 6px solid var(--primary);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             animation: slideIn 0.3s ease-out;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .toast.success { border-left-color: var(--success); }
@@ -350,10 +352,10 @@
         /* Auto Progress */
         .progress-bar-container {
             width: 100%;
-            height: 4px;
+            height: 6px;
             background: #e0e0e0;
-            margin-top: 10px;
-            border-radius: 2px;
+            margin-top: 12px;
+            border-radius: 3px;
             overflow: hidden;
             display: none;
         }
@@ -366,15 +368,15 @@
 
         /* Loading Spinner */
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
             display: inline-block;
             vertical-align: middle;
-            margin-right: 8px;
+            margin-right: 12px;
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -384,15 +386,15 @@
         /* CPU Link */
         .cpu-grade-link {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
         .cpu-grade-link a {
             color: var(--primary);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 1rem;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
         .cpu-grade-link a:hover {
             text-decoration: underline;
@@ -400,12 +402,63 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .user-info { width: 100%; flex-wrap: wrap; }
+            header { flex-direction: column; align-items: flex-start; gap: 18px; }
+            .user-info { width: 100%; flex-wrap: wrap; font-size: 1rem; }
             .input-group { flex-direction: column; max-width: 100%; }
             button { width: 100%; }
             .action-buttons-group { flex-direction: column; }
         }
+
+        /* Sort Mode Switch */
+        .sort-mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-sec);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .sort-mode-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sort-mode-label.active { color: var(--primary); font-weight: 500; }
     </style>
 </head>
 <body>
@@ -461,9 +514,19 @@
 
         <!-- Config Table Section -->
         <section id="createModeSection">
-            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin:0;">可用配置列表</h3>
-                <button id="refreshBtn" class="outline" style="padding: 6px 12px; font-size: 12px;">刷新列表</button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="sort-mode-switch">
+                        <span class="sort-mode-label active" id="singleSortLabel">单排序</span>
+                        <label class="switch">
+                            <input type="checkbox" id="sortModeToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="sort-mode-label" id="dualSortLabel">双重排序</span>
+                    </div>
+                    <button id="refreshBtn" class="outline" style="padding: 6px 12px; font-size: 12px;">刷新列表</button>
+                </div>
             </div>
             
             <!-- CPU Grade Link -->
@@ -541,7 +604,18 @@
 
         <!-- Instances Table Section -->
         <section id="instanceModeSection" class="hidden">
-            <h3 style="margin-top:0; margin-bottom:15px;">我的实例列表</h3>
+            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin:0;">我的实例列表</h3>
+                <div class="sort-mode-switch">
+                    <span class="sort-mode-label active" id="singleSortLabelInst">单排序</span>
+                    <label class="switch">
+                        <input type="checkbox" id="sortModeToggleInst">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="sort-mode-label" id="dualSortLabelInst">双重排序</span>
+                </div>
+            </div>
+            
             <div class="table-container">
                 <table id="instancesTable">
                     <thead>
@@ -654,6 +728,7 @@ const simpCreateApp = {
         selectedInstanceData: null, 
         isInstanceMode: false,
         // 排序状态
+        isDualSort: false, // 是否启用双重排序
         primarySortKey: 'area_grade', 
         primarySortAsc: true,
         secondarySortKey: null,
@@ -678,6 +753,8 @@ const simpCreateApp = {
             this.elements.refreshBtn.style.display = 'block';
             this.refreshData(true);
         }
+        
+        this.updateSortHeaders();
     },
 
     cacheDOM() {
@@ -692,7 +769,9 @@ const simpCreateApp = {
             'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName',
             'currentInstanceSpec',
             'targetConfigName', 'reconfigureBtn', 'startInstanceBtn', 'autoReconfig', 'autoReconfigureBtn',
-            'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'userInfo'
+            'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'userInfo',
+            'sortModeToggle', 'sortModeToggleInst', 'singleSortLabel', 'dualSortLabel',
+            'singleSortLabelInst', 'dualSortLabelInst'
         ];
         ids.forEach(id => this.elements[id] = document.getElementById(id));
     },
@@ -710,6 +789,10 @@ const simpCreateApp = {
         // Modes
         this.elements.modeCreateBtn.addEventListener('click', () => this.switchMode(false));
         this.elements.modeInstanceBtn.addEventListener('click', () => this.switchMode(true));
+        
+        // Sort Mode Toggle
+        this.elements.sortModeToggle.addEventListener('change', (e) => this.toggleSortMode(e.target.checked));
+        this.elements.sortModeToggleInst.addEventListener('change', (e) => this.toggleSortMode(e.target.checked));
         
         // Create Mode
         this.elements.refreshBtn.addEventListener('click', () => this.refreshData());
@@ -742,30 +825,72 @@ const simpCreateApp = {
             }
         });
     },
+    toggleSortMode(isDual) {
+        this.state.isDualSort = isDual;
+        
+        // Update UI for both toggles
+        this.elements.sortModeToggle.checked = isDual;
+        this.elements.sortModeToggleInst.checked = isDual;
+        
+        // Update labels
+        if (isDual) {
+            this.elements.singleSortLabel.classList.remove('active');
+            this.elements.dualSortLabel.classList.add('active');
+            this.elements.singleSortLabelInst.classList.remove('active');
+            this.elements.dualSortLabelInst.classList.add('active');
+        } else {
+            this.elements.dualSortLabel.classList.remove('active');
+            this.elements.singleSortLabel.classList.add('active');
+            this.elements.dualSortLabelInst.classList.remove('active');
+            this.elements.singleSortLabelInst.classList.add('active');
+            
+            // 单排序模式下清除副排序
+            this.state.secondarySortKey = null;
+        }
+        
+        // Refresh tables
+        this.renderConfigs();
+        this.renderInstances(this.state.cachedInstances || []);
+        this.updateSortHeaders();
+        
+        Toast.success(isDual ? '已启用双重排序，点击两列可设置主次排序' : '已切换为单排序模式', 2000);
+    },
+
     handleSortClick(th) {
         const key = th.dataset.key;
         const isPrimary = (this.state.primarySortKey === key);
         const isSecondary = (this.state.secondarySortKey === key);
         
-        if (isPrimary) {
-            // 情况1：点击当前主排序列 -> 切换方向
-            this.state.primarySortAsc = !this.state.primarySortAsc;
-        } else if (isSecondary) {
-            // 情况2：点击当前副排序列 -> 切换方向
-            this.state.secondarySortAsc = !this.state.secondarySortAsc;
-        } else {
-            // 情况3：点击一个全新的列
-            if (this.state.secondarySortKey === null) {
-                // 3a. 当前状态：只有主排序（例如只有 CPU 等级）
-                //     操作：将新点击的列设为副排序
-                this.state.secondarySortKey = key;
-                this.state.secondarySortAsc = true;
+        if (!this.state.isDualSort) {
+            // 单排序模式：点击切换方向或设置新排序
+            if (isPrimary) {
+                this.state.primarySortAsc = !this.state.primarySortAsc;
             } else {
-                // 3b. 当前状态：已有主排序 + 副排序
-                //     操作：点击第3个不同的列，清除所有排序，新列变为主排序
                 this.state.primarySortKey = key;
                 this.state.primarySortAsc = true;
-                this.state.secondarySortKey = null;
+            }
+        } else {
+            // 双重排序模式
+            if (isPrimary) {
+                // 情况1：点击当前主排序列 -> 切换方向
+                this.state.primarySortAsc = !this.state.primarySortAsc;
+            } else if (isSecondary) {
+                // 情况2：点击当前副排序列 -> 切换方向
+                this.state.secondarySortAsc = !this.state.secondarySortAsc;
+            } else {
+                // 情况3：点击一个全新的列
+                if (this.state.secondarySortKey === null) {
+                    // 3a. 当前状态：只有主排序（例如只有 CPU 等级）
+                    //     操作：将新点击的列设为副排序
+                    this.state.secondarySortKey = key;
+                    this.state.secondarySortAsc = true;
+                } else {
+                    // 3b. 当前状态：已有主排序 + 副排序
+                    //     操作：点击第3个不同的列，清除所有排序，新列变为主排序
+                    this.state.primarySortKey = key;
+                    this.state.primarySortAsc = true;
+                    this.state.secondarySortKey = null;
+                }
             }
         }
         
@@ -789,7 +914,7 @@ const simpCreateApp = {
                 th.innerHTML += ` <span class="sort-icon primary">${arrow}</span>`;
             }
             // 副排序箭头
-            else if (key === this.state.secondarySortKey) {
+            else if (this.state.isDualSort && key === this.state.secondarySortKey) {
                 const arrow = this.state.secondarySortAsc ? '▼' : '▲';
                 th.innerHTML += ` <span class="sort-icon secondary">${arrow}</span>`;
             }
@@ -830,8 +955,8 @@ const simpCreateApp = {
             if (valA < valB) return this.state.primarySortAsc ? -1 : 1;
             if (valA > valB) return this.state.primarySortAsc ? 1 : -1;
             
-            // 2. 副排序比较（如果主排序相同）
-            if (this.state.secondarySortKey) {
+            // 2. 副排序比较（如果主排序相同且启用双重排序）
+            if (this.state.isDualSort && this.state.secondarySortKey) {
                 let valA2 = this.getSortValue(a, this.state.secondarySortKey);
                 let valB2 = this.getSortValue(b, this.state.secondarySortKey);
                 
@@ -969,9 +1094,9 @@ const simpCreateApp = {
                 <td>${cfg.area_grade}</td>
                 <td>${cfg.area_vendor}</td>
                 <td>${cfg.cpu}</td>
-                <td>${cfg.ram}</td>
-                <td>${cfg.disk}</td>
-                <td>${cfg.traffic}</td>
+                <td>${cfg.ram}GB</td>
+                <td>${cfg.disk}GB</td>
+                <td>${cfg.traffic}GB</td>
                 <td>${cfg.point}</td>
                 <td>${cfg.spec}</td>
                 <td><span class="status-tag ${cfg.creatable ? 'status-yes' : 'status-no'}">${cfg.creatable ? '可创建' : '缺货'}</span></td>
@@ -1005,9 +1130,9 @@ const simpCreateApp = {
             if (ins.traffic && typeof ins.traffic === 'object' && ins.traffic.plan) {
                 const remainGB = (ins.traffic.remain_bytes / (1024*1024*1024)).toFixed(2);
                 const totalGB = ins.traffic.plan;
-                trafficInfo = `${remainGB}G / ${totalGB}G`;
+                trafficInfo = `${remainGB}GB / ${totalGB}GB`;
             } else if (ins.traffic_plan) {
-                trafficInfo = `${ins.traffic_plan}G`;
+                trafficInfo = `${ins.traffic_plan}GB`;
             }
 
             tr.innerHTML = `
@@ -1016,8 +1141,8 @@ const simpCreateApp = {
                 <td>${ins.area_grade || '-'}</td>
                 <!-- 供应商列已移除 -->
                 <td>${ins.cpu}核</td>
-                <td>${ins.ram}G</td>
-                <td>${ins.disk}G</td>
+                <td>${ins.ram}GB</td>
+                <td>${ins.disk}GB</td>
                 <td>${trafficInfo}</td>
                 <td>${ins.point}</td>
             `;
@@ -1087,6 +1212,16 @@ const simpCreateApp = {
             this.elements.modeInstanceBtn.classList.add('active');
             this.elements.createModeSection.classList.add('hidden');
             this.elements.instanceModeSection.classList.remove('hidden');
+            
+            // Sync sort mode toggle
+            this.elements.sortModeToggleInst.checked = this.state.isDualSort;
+            if (this.state.isDualSort) {
+                this.elements.singleSortLabelInst.classList.remove('active');
+                this.elements.dualSortLabelInst.classList.add('active');
+            } else {
+                this.elements.dualSortLabelInst.classList.remove('active');
+                this.elements.singleSortLabelInst.classList.add('active');
+            }
             
             if (this.state.token) {
                 this.loadInstances();
