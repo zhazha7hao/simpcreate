@@ -150,6 +150,8 @@
         button.danger:hover { background: #b71c1c; }
         button.outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         button.outline:hover { background: rgba(25, 118, 210, 0.05); }
+        button.success { background: var(--success); }
+        button.success:hover { background: #1b5e20; }
 
         .bookmarklet {
             display: inline-block;
@@ -201,12 +203,12 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            min-width: 1000px; 
         }
 
         thead th {
             background: #f8f9fa;
-            padding: 15px;
+            padding: 12px;
             text-align: left;
             font-weight: 600;
             color: var(--text-sec);
@@ -214,15 +216,37 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         thead th.sortable { cursor: pointer; user-select: none; }
         thead th.sortable:hover { background: #eeeeee; }
+        
+        /* Sort Icons */
+        .sort-icon {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+        .sort-icon.primary {
+            color: var(--primary);
+            opacity: 1;
+            font-weight: bold;
+        }
+        .sort-icon.secondary {
+            color: var(--text-sec);
+            opacity: 0.7; /* Slightly increased opacity for better visibility */
+            font-size: 10px;
+            margin-left: 2px;
+        }
 
         td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 1px solid var(--border);
             color: var(--text-sec);
+            font-size: 14px;
         }
 
         tbody tr { cursor: pointer; transition: background 0.2s; }
@@ -257,6 +281,14 @@
             margin-top: 15px;
         }
 
+        .action-buttons-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
         .create-mode-toggle {
             display: flex;
             justify-content: center;
@@ -270,12 +302,6 @@
             align-items: center;
             gap: 5px;
         }
-
-        /* Detail Expansion */
-        .instance-detail-row { background: #f8f9fa; }
-        .instance-detail { padding: 15px; }
-        .detail-table { width: 100%; margin-top: 10px; background: white; }
-        .detail-table th, .detail-table td { border: 1px solid var(--border); }
 
         /* Toast Notifications */
         #toast-container {
@@ -368,6 +394,7 @@
             .user-info { width: 100%; flex-wrap: wrap; }
             .input-group { flex-direction: column; max-width: 100%; }
             button { width: 100%; }
+            .action-buttons-group { flex-direction: column; }
         }
     </style>
 </head>
@@ -495,12 +522,15 @@
                 <table id="instancesTable">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>名称</th>
-                            <th>CPU核心</th>
-                            <th>内存</th>
-                            <th>磁盘</th>
-                            <th>创建时间</th>
+                            <th class="sortable" data-key="id">实例ID</th>
+                            <th class="sortable" data-key="shop_id">配置ID</th>
+                            <th class="sortable" data-key="area_grade">当前实例类型</th>
+                            <!-- 供应商列已移除 -->
+                            <th class="sortable" data-key="cpu">CPU核心</th>
+                            <th class="sortable" data-key="ram">内存</th>
+                            <th class="sortable" data-key="disk">磁盘</th>
+                            <th class="sortable" data-key="traffic">剩余流量/总流量</th>
+                            <th class="sortable" data-key="point">积分</th>
                         </tr>
                     </thead>
                     <tbody id="instancesBody"></tbody>
@@ -508,12 +538,15 @@
             </div>
 
             <div id="reconfigActionArea" class="actions-panel hidden">
-                <h3 style="margin-top:0;">变配操作</h3>
-                <p>当前选中实例：<span id="selectedInstanceName" style="font-weight:bold;"></span></p>
-                <p>目标配置：<span id="targetConfigName" style="font-weight:bold; color:var(--primary);">--</span> (请在创建列表中选择配置)</p>
+                <h3 style="margin-top:0;">操作面板</h3>
+                <p>当前选中实例：<span id="selectedInstanceName" style="font-weight:bold;"></span> (<span id="currentInstanceSpec"></span>)</p>
+                <p>目标配置：<span id="targetConfigName" style="font-weight:bold; color:var(--primary);">--</span> (请在上方创建列表中选择配置)</p>
                 
                 <div id="manualReconfig">
-                    <button id="reconfigureBtn" class="main-action-btn">执行变配</button>
+                    <div class="action-buttons-group">
+                        <button id="reconfigureBtn" class="main-action-btn">执行变配</button>
+                        <button id="startInstanceBtn" class="main-action-btn success">开服</button>
+                    </div>
                 </div>
                 
                 <div id="autoReconfig" class="hidden">
@@ -581,9 +614,13 @@ const simpCreateApp = {
         token: null,
         selectedConfig: null,
         selectedInstanceId: null,
+        selectedInstanceData: null, 
         isInstanceMode: false,
-        sortKey: 'area_grade', // 默认排序键
-        sortAsc: true,         // 默认升序
+        // 排序状态
+        primarySortKey: 'area_grade', 
+        primarySortAsc: true,
+        secondarySortKey: null,
+        secondarySortAsc: true,
         createIntervalId: null,
         reconfigIntervalId: null,
         createRepeatCount: 0,
@@ -615,8 +652,9 @@ const simpCreateApp = {
             'createActionArea', 'selectedConfigName', 'createBtn', 
             'singleCreateUI', 'loopCreateUI', 'autoCreateBtn',
             'intervalInput', 'repeatCount', 'createProgressContainer', 'createProgressBar',
-            'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName', 
-            'targetConfigName', 'reconfigureBtn', 'autoReconfig', 'autoReconfigureBtn',
+            'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName',
+            'currentInstanceSpec',
+            'targetConfigName', 'reconfigureBtn', 'startInstanceBtn', 'autoReconfig', 'autoReconfigureBtn',
             'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'userInfo'
         ];
         ids.forEach(id => this.elements[id] = document.getElementById(id));
@@ -643,16 +681,15 @@ const simpCreateApp = {
         
         // Instance Mode
         this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance(false));
+        this.elements.startInstanceBtn.addEventListener('click', () => this.startInstance()); 
         this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfig());
 
-        // Table Sort Delegation
-        document.querySelectorAll('th.sortable').forEach(th => {
-            th.addEventListener('click', () => {
-                this.state.sortKey = th.dataset.key;
-                this.state.sortAsc = (this.state.lastSortKey === th.dataset.key) ? !this.state.sortAsc : true;
-                this.state.lastSortKey = th.dataset.key;
-                this.renderConfigs();
-            });
+        // Table Sort Delegation (Both Tables)
+        document.addEventListener('click', (e) => {
+            const th = e.target.closest('th.sortable');
+            if (th) {
+                this.handleSortClick(th);
+            }
         });
 
         // Copy Delegation
@@ -667,6 +704,110 @@ const simpCreateApp = {
                 }
             }
         });
+    },
+    handleSortClick(th) {
+        const key = th.dataset.key;
+        const isPrimary = (this.state.primarySortKey === key);
+        const isSecondary = (this.state.secondarySortKey === key);
+        
+        if (isPrimary) {
+            // 情况1：点击当前主排序列 -> 切换方向
+            this.state.primarySortAsc = !this.state.primarySortAsc;
+        } else if (isSecondary) {
+            // 情况2：点击当前副排序列 -> 切换方向
+            this.state.secondarySortAsc = !this.state.secondarySortAsc;
+        } else {
+            // 情况3：点击一个全新的列
+            if (this.state.secondarySortKey === null) {
+                // 3a. 当前状态：只有主排序（例如只有 CPU 等级）
+                //     操作：将新点击的列设为副排序
+                this.state.secondarySortKey = key;
+                this.state.secondarySortAsc = true;
+            } else {
+                // 3b. 当前状态：已有主排序 + 副排序
+                //     操作：点击第3个不同的列，清除所有排序，新列变为主排序
+                this.state.primarySortKey = key;
+                this.state.primarySortAsc = true;
+                this.state.secondarySortKey = null;
+            }
+        }
+        
+        // 刷新表格视图
+        this.renderConfigs();
+        this.renderInstances(this.state.cachedInstances || []);
+        this.updateSortHeaders();
+    },
+    updateSortHeaders() {
+        document.querySelectorAll('th.sortable').forEach(th => {
+            // 清理旧箭头（移除 ▼ ▲ 和 span）
+            // 注意：textContent 会移除内部 span，所以我们要先保存纯文本标题
+            const baseText = th.childNodes[0].textContent.trim(); 
+            th.innerHTML = baseText;
+
+            const key = th.dataset.key;
+            
+            // 主排序箭头
+            if (key === this.state.primarySortKey) {
+                const arrow = this.state.primarySortAsc ? '▼' : '▲';
+                th.innerHTML += ` <span class="sort-icon primary">${arrow}</span>`;
+            }
+            // 副排序箭头
+            else if (key === this.state.secondarySortKey) {
+                const arrow = this.state.secondarySortAsc ? '▼' : '▲';
+                th.innerHTML += ` <span class="sort-icon secondary">${arrow}</span>`;
+            }
+        });
+    },
+
+    getSortValue(item, key) {
+        let val = item[key];
+        
+        // Traffic 特殊处理
+        if (key === 'traffic') {
+            // 1. 实例详情对象
+            if (val && typeof val === 'object' && 'remain_bytes' in val) {
+                return val.remain_bytes;
+            }
+            // 2. 数值或字符串，直接转换为数字
+            const num = Number(val);
+            return isNaN(num) ? 0 : num;
+        }
+        
+        // 其他字段处理
+        if (key === 'area_grade') {
+            return this.config.GRADE_ORDER.indexOf(val);
+        } else if (key === 'spec') {
+            return this.config.SPEC_ORDER.indexOf(val);
+        } 
+        
+        // 默认处理
+        const num = parseFloat(val);
+        return isNaN(num) ? String(val).toLowerCase() : num;
+    },
+    sortData(data) {
+        return [...data].sort((a, b) => {
+            // 1. 主排序比较
+            let valA = this.getSortValue(a, this.state.primarySortKey);
+            let valB = this.getSortValue(b, this.state.primarySortKey);
+            
+            if (valA < valB) return this.state.primarySortAsc ? -1 : 1;
+            if (valA > valB) return this.state.primarySortAsc ? 1 : -1;
+            
+            // 2. 副排序比较（如果主排序相同）
+            if (this.state.secondarySortKey) {
+                let valA2 = this.getSortValue(a, this.state.secondarySortKey);
+                let valB2 = this.getSortValue(b, this.state.secondarySortKey);
+                
+                if (valA2 < valB2) return this.state.secondarySortAsc ? -1 : 1;
+                if (valA2 > valB2) return this.state.secondarySortAsc ? 1 : -1;
+            }
+            
+            return 0;
+        });
+    },
+
+    getCachedInstances() {
+        return this.state.cachedInstances || [];
     },
 
     toggleCreateUI() {
@@ -740,45 +881,43 @@ const simpCreateApp = {
     },
 
     async loadInstances() {
-        const data = await this.apiFetch('/ins/list?');
-        this.renderInstances(data.list);
+        try {
+            const listData = await this.apiFetch('/ins/list?');
+            const instanceIds = listData.list.map(item => item.id);
+            
+            if (instanceIds.length === 0) {
+                this.renderInstances([]);
+                this.state.cachedInstances = [];
+                return;
+            }
+
+            const detailPromises = instanceIds.map(id => this.apiFetch(`/ins/${id}/detail`));
+            const detailResponses = await Promise.all(detailPromises);
+            
+            const detailMap = {};
+            detailResponses.forEach(res => {
+                if (res && res.data) {
+                    detailMap[res.data.id] = res.data;
+                }
+            });
+
+            const finalInstances = listData.list.map(listItem => {
+                const detailItem = detailMap[listItem.id] || {};
+                return { ...listItem, ...detailItem };
+            });
+
+            this.state.cachedInstances = finalInstances;
+            this.renderInstances(finalInstances);
+        } catch (error) {
+            console.error('加载实例失败:', error);
+            Toast.error(`加载实例失败: ${error.message}`);
+        }
     },
 
     // --- Rendering ---
     renderConfigs() {
-        const data = [...this.state.cachedConfigs];
+        const data = this.sortData(this.state.cachedConfigs);
         
-        // Sort
-        if (this.state.sortKey) {
-            data.sort((a, b) => {
-                let valA = a[this.state.sortKey];
-                let valB = b[this.state.sortKey];
-                
-                if (this.state.sortKey === 'area_grade') {
-                    valA = this.config.GRADE_ORDER.indexOf(valA);
-                    valB = this.config.GRADE_ORDER.indexOf(valB);
-                } else if (this.state.sortKey === 'spec') {
-                    valA = this.config.SPEC_ORDER.indexOf(valA);
-                    valB = this.config.SPEC_ORDER.indexOf(valB);
-                } else if (typeof valA === 'string') {
-                    valA = valA.toLowerCase();
-                    valB = valB.toLowerCase();
-                }
-                
-                if (valA < valB) return this.state.sortAsc ? -1 : 1;
-                if (valA > valB) return this.state.sortAsc ? 1 : -1;
-                return 0;
-            });
-            
-            // Update Header Arrows
-            document.querySelectorAll('th.sortable').forEach(th => {
-                th.innerHTML = th.innerText.replace(' ▲', '').replace(' ▼', '');
-                if(th.dataset.key === this.state.sortKey) {
-                    th.innerHTML += this.state.sortAsc ? ' ▲' : ' ▼';
-                }
-            });
-        }
-
         const tbody = this.elements.configBody;
         tbody.innerHTML = '';
         const fragment = document.createDocumentFragment();
@@ -808,27 +947,42 @@ const simpCreateApp = {
     },
 
     renderInstances(instances) {
+        const data = this.sortData(instances || []);
+        
         const tbody = this.elements.instancesBody;
         tbody.innerHTML = '';
         const fragment = document.createDocumentFragment();
 
-        if (!instances || instances.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">暂无实例</td></tr>';
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">暂无实例</td></tr>';
             this.elements.reconfigActionArea.classList.add('hidden');
             return;
         }
 
-        instances.forEach(ins => {
+        data.forEach(ins => {
             const tr = document.createElement('tr');
             if (this.state.selectedInstanceId === ins.id) tr.classList.add('selected');
 
+            // 流量计算
+            let trafficInfo = '-';
+            if (ins.traffic && typeof ins.traffic === 'object' && ins.traffic.plan) {
+                const remainGB = (ins.traffic.remain_bytes / (1024*1024*1024)).toFixed(2);
+                const totalGB = ins.traffic.plan;
+                trafficInfo = `${remainGB}G / ${totalGB}G`;
+            } else if (ins.traffic_plan) {
+                trafficInfo = `${ins.traffic_plan}G`;
+            }
+
             tr.innerHTML = `
                 <td>${ins.id}</td>
-                <td>${ins.name || '未命名'}</td>
+                <td>${ins.shop_id || '-'}</td>
+                <td>${ins.area_grade || '-'}</td>
+                <!-- 供应商列已移除 -->
                 <td>${ins.cpu}核</td>
                 <td>${ins.ram}G</td>
                 <td>${ins.disk}G</td>
-                <td style="font-size:0.85rem; color:#666;">${new Date(ins.create_time).toLocaleString()}</td>
+                <td>${trafficInfo}</td>
+                <td>${ins.point}</td>
             `;
 
             tr.addEventListener('click', () => this.selectInstance(ins, tr));
@@ -852,54 +1006,32 @@ const simpCreateApp = {
         }
     },
 
-    async selectInstance(ins, rowEl) {
+    selectInstance(ins, rowEl) {
         this.state.selectedInstanceId = ins.id;
-        this.elements.selectedInstanceName.textContent = `${ins.name || ins.id} (${ins.area_grade})`;
+        this.state.selectedInstanceData = ins; 
+
+        this.elements.selectedInstanceName.textContent = `${ins.name || ins.id}`;
+        if (this.elements.currentInstanceSpec) {
+            this.elements.currentInstanceSpec.textContent = `${ins.area_grade || '未知'} (${ins.cpu}C/${ins.ram}G)`;
+        }
 
         document.querySelectorAll('#instancesBody tr').forEach(tr => tr.classList.remove('selected'));
         rowEl.classList.add('selected');
         
-        document.querySelectorAll('.instance-detail-row').forEach(r => r.remove());
-
-        try {
-            const detailData = await this.apiFetch(`/ins/${ins.id}/detail`);
-            const insDetail = detailData.data;
-            
-            const detailRow = document.createElement('tr');
-            detailRow.className = 'instance-detail-row';
-            detailRow.innerHTML = `
-                <td colspan="6">
-                    <div class="instance-detail">
-                        <strong>实例详情：</strong>
-                        <table class="detail-table">
-                            <tr><th>当前配置ID</th><th>当前积分</th><th>状态</th></tr>
-                            <tr>
-                                <td>${insDetail.shop_id}</td>
-                                <td>${insDetail.point}</td>
-                                <td>${insDetail.status}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            `;
-            rowEl.after(detailRow);
-            detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-            this.elements.reconfigActionArea.classList.remove('hidden');
-            if (this.state.selectedConfig) {
-                this.updateReconfigControls(this.state.selectedConfig);
-            } else {
-                this.elements.targetConfigName.textContent = "请先在上方创建列表中点击选择一个目标配置";
-                this.elements.manualReconfig.classList.add('hidden');
-                this.elements.autoReconfig.classList.add('hidden');
-            }
-        } catch (e) {
-            Toast.error('加载实例详情失败');
+        this.elements.reconfigActionArea.classList.remove('hidden');
+        
+        if (this.state.selectedConfig) {
+            this.updateReconfigControls(this.state.selectedConfig);
+        } else {
+            this.elements.targetConfigName.textContent = "请先在上方创建列表中点击选择一个目标配置";
+            this.elements.manualReconfig.classList.add('hidden');
+            this.elements.autoReconfig.classList.add('hidden');
         }
     },
 
     updateReconfigControls(targetCfg) {
         this.elements.targetConfigName.textContent = `${targetCfg.area_grade} / ${targetCfg.spec} (${targetCfg.cpu}C/${targetCfg.ram}G)`;
+        
         if (targetCfg.creatable) {
             this.elements.manualReconfig.classList.remove('hidden');
             this.elements.autoReconfig.classList.add('hidden');
@@ -998,6 +1130,23 @@ const simpCreateApp = {
                 btn.disabled = false;
                 btn.textContent = originalText;
             }
+        }
+    },
+    
+    async startInstance() {
+        const btn = this.elements.startInstanceBtn;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> 开服中...';
+
+        try {
+            const data = await this.apiFetch(`/ins/${this.state.selectedInstanceId}/power?action=start`);
+            Toast.success(data.msg || '开服成功');
+        } catch (error) {
+            Toast.error(`开服失败: ${error.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     },
 
