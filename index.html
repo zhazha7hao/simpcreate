@@ -1,1148 +1,1157 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">    
-    <meta name="google-site-verification" content="aKeKXIY4RaTpW7kU-CqdvyrU0FdKPUNi-UQUJPL5Q_o" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="简欢幻实例创建&变配工具，支持获取简幻欢 Token、创建实例、自动创建以及实例变配和自动变配等功能，为用户提供便捷的实例创建和管理服务。">
-    <title>simpcreate 简幻欢实例创建&变配工具</title>
+    <meta name="description" content="简欢幻实例创建&变配工具，支持获取简幻欢 Token、创建实例、自动创建以及实例变配和自动变配等功能。">
+    <title>简幻欢实例创建&变配工具</title>
     <style>
-        .pro-badge {
-            background-color: #1976d2;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-            vertical-align: top;
-            margin-left: 5px;
-            display: inline-block;
+        :root {
+            --primary: #1976d2;
+            --primary-hover: #1565c0;
+            --success: #2e7d32;
+            --error: #d32f2f;
+            --warning: #f57c00;
+            --text-main: #333;
+            --text-sec: #666;
+            --bg-body: #f5f7fa;
+            --bg-card: #ffffff;
+            --border: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            --radius: 8px;
         }
-        .clickable-info {
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .copy-hint {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
-            font-size: 16px;
-        }
+
+        * { box-sizing: border-box; outline: none; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f5f5f5;
+            background: var(--bg-body);
             margin: 0;
             padding: 20px;
+            color: var(--text-main);
+            line-height: 1.6;
         }
-        #myInstancesSection {
-            transition: all 0.3s ease;
-            max-height: 0;
-            overflow: hidden;
-        }
-        #myInstancesSection[style*="display: block"] {
-            max-height: 5000px;
-        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
-            padding: 30px;
         }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .tutorial {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-radius: 5px;
-            padding: 10px 20px;
+
+        /* Header & UserInfo */
+        header {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px 30px;
+            box-shadow: var(--shadow);
             margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
         }
-        .tutorial h2 {
-            color: #1976d2;
-            margin-top: 0;
+
+        h1 { margin: 0; font-size: 1.5rem; color: var(--text-main); }
+
+        .user-info {
+            font-size: 0.95rem;
+            color: var(--text-sec);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .bookmarklet {
-            display: inline-block;
-            background: #1976d2;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            cursor: move;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
-        }
-        .bookmarklet:hover {
-            background: #1565c0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background: #f8f9fa;
+
+        .pro-badge {
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: bold;
         }
-        .creatable {
-            color: green;
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-out;
         }
-        .not-creatable {
-            color: red;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        button {
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 18px;
-            display: block;
-            margin: 20px auto;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
-        }
-        button:hover {
-            background: #1565c0;
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .loading, .error, .success {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .loading {
-            color: #666;
-            font-size: 18px;
-        }
-        .error {
-            color: red;
-        }
-        .success {
-            color: green;
-            font-size: 18px;
-        }
-        .selected {
-            background: #e8f5e9 !important;
-        }
-        #createBtn {
-            display: block;
-            margin: 20px auto;
-            padding: 15px 40px;
-            font-size: 18px;
-        }
+
+        /* Tutorial Section */
         .tutorial-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
+        
         .tutorial-content {
             display: none;
-            font-size: 1.1em;
+            padding: 10px 0;
         }
-        .tutorial.expanded .tutorial-content {
-            display: block;
+        
+        .tutorial.expanded .tutorial-content { display: block; }
+        .tutorial.expanded .toggle-icon { transform: rotate(180deg); }
+        
+        .toggle-icon { transition: transform 0.3s; color: var(--text-sec); }
+
+        ol { padding-left: 20px; color: var(--text-sec); }
+        li { margin-bottom: 10px; }
+
+        /* Inputs & Buttons */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            max-width: 500px;
         }
-        .toggle-icon {
-            transition: transform .3s;
+
+        input[type="text"], input[type="number"], input[type="password"] {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
         }
-        .tutorial.expanded .toggle-icon {
-            transform: rotate(180deg);
-        }
-          .token-input-group {
-              display: flex;
-              align-items: center;
-              gap: 0 !important;
-              justify-content: flex-start;
-              margin: 0 !important;
-              padding: 0 !important;
-              position: relative;
-          }
-          #tokenInput {
-              width: 300px;
-              height: 42px;
-              font-size: 16px;
-              padding: 5px 10px;
-              margin: 0 !important;
-              border: none !important;
-              outline: none !important;
-              box-sizing: border-box !important;
-              position: relative;
-              z-index: 1;
-          }
-        #tokenInput,
-        #submitTokenBtn {
-            box-sizing: border-box;
-        }
-          #submitTokenBtn {
-              height: 42px;
-              font-size: 16px;
-              padding: 5px 10px;
-              margin: -2px 0 0 -2px !important;
-              border: none !important;
-              outline: none !important;
-              box-sizing: border-box !important;
-              flex-shrink: 0;
-              position: relative;
-              z-index: 2;
-              background-color: #1976d2;
-              color: white;
-          }
-        #tokenInput {
+
+        input:focus { border-color: var(--primary); }
+
+        button {
+            background: var(--primary);
+            color: white;
             border: none;
-            outline: none;
-            flex-shrink: 0;
-        }
-        #intervalInput {
-            width: 150px;
-            height: 40px;
-            font-size: 20px;
-            padding: 5px 10px;
-            margin-right: 10px;
-        }
-        #refreshBtn {
-            display: none;
-            margin: 20px auto;
-            padding: 15px 40px;
-            font-size: 18px;
-        }
-        #intervalInput,
-        #instanceIntervalInput {
-            width: 150px;
-            height: 40px;
-            font-size: 20px;
-            padding: 5px 10px;
-            margin-right: 10px;
-        }
-        /* 移动端 */
-        @media (max-width:768px) {
-            .token-input-group {
-                flex-direction: column;
-            }
-            body {
-                padding: 5px;
-            }
-            .container {
-                padding: 10px;
-                box-sizing: border-box;
-            }
-            #tokenInput {
-                width: 100%;
-                margin-bottom: 10px;
-                box-sizing: border-box;
-            }
-            #submitTokenBtn {
-                margin: 0 !important;
-                width: 100%;
-            }
-            #submitTokenBtn {
-                margin: 10px 0 0 0 !important;
-                display: block;
-                width: 100%;
-            }
-            #submitTokenBtn {
-                display: block;
-                width: 100%;
-                margin: 0 !important;
-            }
-            .table-scroll-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                margin-bottom: 10px;
-                width: 100%;
-            }
-            table {
-                min-width: max-content;
-                border-collapse: collapse;
-            }
-            th, td {
-                padding: 6px 8px;
-                font-size: 12px;
-                white-space: nowrap;
-            }
-            th {
-                background: #f8f9fa;
-            }
-            button {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            #createBtn {
-                padding: 8px 20px;
-                font-size: 14px;
-            }
-            #refreshBtn {
-                padding: 8px 20px;
-                font-size: 14px;
-            }
-            .auto-reconfig-btn {
-                padding: 8px 20px;
-                font-size: 14px;
-            }
-        }
-        /* 小屏幕手机特别优化 */
-        @media (max-width:480px) {
-            table {
-                font-size: 11px;
-            }
-            th, td {
-                padding: 4px 6px;
-            }
-            #intervalInput,
-            #instanceIntervalInput {
-                width: 100%;
-                box-sizing: border-box;
-                margin-bottom: 10px;
-            }
-        }
-        /* 可创建行样式 */
-        .creatable-row {
-            background: #e8f5e9;
-        }
-        .creatable-row.selected {
-            background: #c8e6c9 !important;
-        }
-        .not-creatable-row.selected {
-            background: #ffcdd2 !important;
-        }
-        .stop {
-            background: #ff0000;
-        }
-        .stop:hover {
-            background: #ff0000 !important;
-        }
-        .auto-reconfig-btn {
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 18px;
-            display: block;
-            margin: 20px auto;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
         }
-        .auto-reconfig-btn:hover {
-            background: #1565c0;
+
+        button:hover { background: var(--primary-hover); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        
+        button.danger { background: var(--error); }
+        button.danger:hover { background: #b71c1c; }
+        button.outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        button.outline:hover { background: rgba(25, 118, 210, 0.05); }
+
+        .bookmarklet {
+            display: inline-block;
+            background: var(--text-main);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            margin-left: 5px;
         }
-        .auto-reconfig-btn.stop {
-            background: #ff0000;
+
+        /* Mode Switcher */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #e0e0e0;
+            border-radius: 8px;
+            padding: 4px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .auto-reconfig-btn.stop:hover {
-            background: #ff0000 !important;
+
+        .mode-btn {
+            padding: 8px 24px;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-sec);
+            box-shadow: none;
         }
-        /* 变配控制区域 */
-        .reconfig-controls {
+
+        .mode-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        thead th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-sec);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead th.sortable { cursor: pointer; user-select: none; }
+        thead th.sortable:hover { background: #eeeeee; }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-sec);
+        }
+
+        tbody tr { cursor: pointer; transition: background 0.2s; }
+        tbody tr:hover { background: #f5f5f5; }
+        tbody tr.selected { background: #e3f2fd; border-left: 4px solid var(--primary); }
+        tbody tr.creatable-row { background: rgba(46, 125, 50, 0.05); }
+        
+        .status-tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-yes { color: var(--success); background: #e8f5e9; }
+        .status-no { color: var(--error); background: #ffebee; }
+
+        /* Actions Panel */
+        .actions-panel {
+            text-align: center;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px dashed var(--border);
+        }
+
+        .actions-panel p { margin: 5px 0; font-size: 14px; color: var(--text-sec); }
+        
+        .main-action-btn {
+            padding: 12px 40px;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+
+        .create-mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .create-mode-toggle label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Detail Expansion */
+        .instance-detail-row { background: #f8f9fa; }
+        .instance-detail { padding: 15px; }
+        .detail-table { width: 100%; margin-top: 10px; background: white; }
+        .detail-table th, .detail-table td { border: 1px solid var(--border); }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin: 20px 0;
+            gap: 10px;
         }
-        .reconfig-controls > * {
-            margin-bottom: 10px;
+
+        .toast {
+            min-width: 250px;
+            padding: 15px 20px;
+            background: white;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease-out;
+            font-size: 14px;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Auto Progress */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width linear;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden { display: none !important; }
+
+        /* CPU Link */
+        .cpu-grade-link {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .cpu-grade-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .cpu-grade-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .user-info { width: 100%; flex-wrap: wrap; }
+            .input-group { flex-direction: column; max-width: 100%; }
+            button { width: 100%; }
         }
     </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
+
 <div class="container">
-    <h1>简幻欢实例创建&变配工具</h1>
-    <div id="userInfo" style="text-align: center; margin-bottom: 20px;"></div>
-    <div id="tutorial" class="tutorial">
-        <div class="tutorial-header" onclick="simpCreateApp.toggleTutorial()">
-            <h2>首次使用教程</h2>
+    <header>
+        <h1>简幻欢实例创建&变配工具</h1>
+        <div id="userInfo" class="user-info">
+            <span class="placeholder">未登录</span>
+        </div>
+    </header>
+
+    <!-- Token / Tutorial Section -->
+    <section id="tutorial" class="card tutorial expanded">
+        <div id="tutorialHeader" class="tutorial-header">
+            <h2 style="margin:0; font-size:1.1rem; color:var(--primary);">🔑 首次使用 & Token 设置</h2>
             <span class="toggle-icon">▼</span>
         </div>
         <div class="tutorial-content">
-            <p>请按以下步骤完成设置：</p>
             <ol>
-                <li>将下方按钮拖拽到浏览器收藏夹栏：<br>
-                    <a href="javascript:(function(){navigator.clipboard.writeText(localStorage.getItem('token')).then(()=>alert('Token 已复制到剪贴板！')).catch(()=>alert('复制失败，请手动复制：'+localStorage.getItem('token')));})();" class="bookmarklet" title="简幻欢Token设置工具">简幻欢Token获取</a>
+                <li>将下方按钮拖拽到浏览器收藏夹：
+                    <a href="javascript:(function(){navigator.clipboard.writeText(localStorage.getItem('token')).then(()=>alert('Token 已复制到剪贴板！')).catch(()=>alert('复制失败，请手动复制：'+localStorage.getItem('token')));})();" class="bookmarklet">简幻欢Token获取</a>
                 </li>
-                <li>访问 <a href="https://simpfun.cn/console" target="_blank">简幻欢官网</a> 并登录您的账号，然后点击刚才添加的收藏夹，获取token</li>
+                <li>访问 <a href="https://simpfun.cn/console" target="_blank" style="color:var(--primary)">简幻欢官网</a> 并登录，点击收藏夹按钮获取 Token。</li>
                 <li>
-                    <div class="token-input-group"><input type="text" id="tokenInput" placeholder="粘贴您的Token"><button id="submitTokenBtn">提交 Token 并完成设置</button></div>
+                    <div class="input-group" style="margin: 10px 0 0 0;">
+                        <input type="password" id="tokenInput" placeholder="在此粘贴 Token">
+                        <button id="submitTokenBtn" style="flex:1">提交 Token</button>
+                    </div>
                 </li>
-                <li>返回此页面，配置列表将自动加载</li>
+                <li>提交后，配置列表将自动加载。</li>
             </ol>
-            <button id="clearTokenBtn">清除 Token</button>
-        </div>
-    </div>
-    <div id="loading" class="loading" style="display:none;">正在加载配置列表...</div>
-    <div id="error" class="error" style="display:none;"></div>
-    <div style="text-align: center; margin-bottom: 10px;">
-        <a href="https://yuque.com/simpfun/sfe/areas" target="_blank">点击查看实例 CPU 等级说明</a>
-    </div>
-    <div class="table-scroll-container">
-        <table id="configTable" style="display:none;">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>CPU等级</th>
-                    <th>供应商</th>
-                    <th>CPU核心数</th>
-                    <th>内存(GB)</th>
-                    <th>磁盘(GB)</th>
-                    <th>流量(GB)</th>
-                    <th>积分</th>
-                    <th>规格</th>
-                    <th>可创建</th>
-                </tr>
-            </thead>
-            <tbody id="configBody"></tbody>
-        <tfoot>
-            <tr>
-                <th>ID</th>
-                <th>CPU等级</th>
-                <th>供应商</th>
-                <th>CPU核心数</th>
-                <th>内存(GB)</th>
-                <th>磁盘(GB)</th>
-                <th>流量(GB)</th>
-                <th>积分</th>
-                <th>规格</th>
-                <th>可创建</th>
-            </tr>
-        </tfoot>
-        </table>
-    </div>
-    <button id="refreshBtn" style="display:none;">刷新实例数据</button>
-    <div id="intervalControl" style="display:none; text-align:center; margin:20px 0;">
-        <p style="font-size: 16px; color: #666; margin-bottom: 10px;">说明：设置重复间隔时间后，点击"开始自动创建"按钮将按照设定的时间间隔重复发送创建请求。点击"停止"按钮可终止重复创建操作。</p>
-        <p style="font-size: 16px; color: red; margin-bottom: 10px;">风险提示：重复创建操作可能会导致账号风险，尤其是重复间隔设置的过低时，请谨慎使用。</p>
-        <label for="intervalInput" style="font-size: 20px;">重复间隔(秒): </label>
-        <input type="number" id="intervalInput" value="30">
-    </div>
-    <span id="repeatCount" style="font-size: 20px; margin: 0 auto; display: none; text-align: center;">重复次数: 0</span>
-    <div id="result" class="success" style="display:none;"></div>
-    <button id="createBtn" style="display:none;" disabled>创建实例</button>
-    <div style="text-align: center; margin-top: 20px;">
-        <button id="modeToggle" style="padding: 8px 16px; font-size: 14px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">
-            切换到我的实例模式
-        </button>
-    </div>
-    <div id="myInstancesSection" style="display: none;">
-        <h2 style="margin-top: 40px;">我的实例</h2>
-        <div id="instancesLoading" class="loading" style="display:none;">正在加载实例信息...</div>
-        <div id="instancesError" class="error" style="display:none;"></div>
-        <div class="table-scroll-container">
-            <table id="instancesTable" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>名称</th>
-                        <th>CPU核心数</th>
-                        <th>内存(GB)</th>
-                        <th>磁盘(GB)</th>
-                        <th>创建时间</th>
-                    </tr>
-                </thead>
-                <tbody id="instancesBody"></tbody>
-                <tfoot>
-                    <tr>
-                        <th>ID</th>
-                        <th>名称</th>
-                        <th>CPU核心数</th>
-                        <th>内存(GB)</th>
-                        <th>磁盘(GB)</th>
-                        <th>创建时间</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-        <div class="reconfig-controls">
-            <button id="reconfigureBtn" style="display: none; padding: 15px 40px;">变配</button>
-            <div id="autoReconfigControl" style="display: none; text-align: center; margin: 20px 0;">
-                <p style="font-size: 16px; color: #666; margin-bottom: 10px;">
-                    设置自动变配间隔时间间后，点击“开始自动变配”按钮将按照设定的时间间隔重复发送变配请求。
-                </p>
-                <p style="font-size: 16px; color: red; margin-bottom: 10px;">
-                    风险提示：频繁变配操作可能会导致账号风险，尤其是间隔时间设置过短时，请谨慎使用。
-                </p>
-                <label for="instanceIntervalInput" style="font-size: 20px; margin-bottom: 10px;">
-                    间隔时间(秒):
-                </label>
-                <input type="number" id="instanceIntervalInput" value="30">
-                <button id="autoReconfigureBtn" class="auto-reconfig-btn">
-                    开始自动变配
-                </button>
+            <div style="margin-top: 15px;">
+                <button id="clearTokenBtn" class="outline" style="font-size: 12px; padding: 5px 10px; border-color: #ccc; color: #666;">清除已保存的 Token</button>
             </div>
         </div>
-        <div id="reconfigureResult" class="success" style="display:none;"></div>
+    </section>
+
+    <!-- Mode Switcher -->
+    <div class="mode-switch">
+        <button class="mode-btn active" id="modeCreateBtn">创建实例模式</button>
+        <button class="mode-btn" id="modeInstanceBtn">我的实例模式</button>
     </div>
-    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-        <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: bold;">项目GitHub 地址</a>
-    </div>
+
+    <!-- Main Content Area -->
+    <main class="card">
+        <div id="loadingArea" style="text-align:center; padding:40px; display:none;">
+            <div class="spinner" style="width:40px; height:40px; border-width:4px;"></div>
+            <p style="margin-top:10px; color:var(--text-sec)">正在加载数据...</p>
+        </div>
+
+        <!-- Config Table Section -->
+        <section id="createModeSection">
+            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;">可用配置列表</h3>
+                <button id="refreshBtn" class="outline" style="padding: 6px 12px; font-size: 12px;">刷新列表</button>
+            </div>
+            
+            <!-- CPU Grade Link -->
+            <div class="cpu-grade-link">
+                <a href="https://yuque.com/simpfun/sfe/areas" target="_blank">
+                    📄 点击查看实例 CPU 等级说明
+                </a>
+            </div>
+
+            <div class="table-container">
+                <table id="configTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-key="id">ID</th>
+                            <th class="sortable" data-key="area_grade">CPU等级</th>
+                            <th class="sortable" data-key="area_vendor">供应商</th>
+                            <th class="sortable" data-key="cpu">CPU核心</th>
+                            <th class="sortable" data-key="ram">内存</th>
+                            <th class="sortable" data-key="disk">磁盘</th>
+                            <th class="sortable" data-key="traffic">流量</th>
+                            <th class="sortable" data-key="point">积分</th>
+                            <th class="sortable" data-key="spec">规格</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="configBody"></tbody>
+                </table>
+            </div>
+
+            <div id="createActionArea" class="actions-panel hidden">
+                <h3 style="margin-top:0;">操作面板</h3>
+                <p>当前选中配置：<span id="selectedConfigName" style="font-weight:bold; color:var(--primary)">--</span></p>
+                
+                <!-- Create Mode Toggle -->
+                <div class="create-mode-toggle">
+                    <label><input type="radio" name="createMode" value="single" checked onchange="simpCreateApp.toggleCreateUI()"> 单次创建</label>
+                    <label><input type="radio" name="createMode" value="loop" onchange="simpCreateApp.toggleCreateUI()"> 循环创建 (自动重复)</label>
+                </div>
+
+                <!-- Single Create UI -->
+                <div id="singleCreateUI">
+                    <p style="font-size:0.9rem; color:#666;">点击下方按钮发送一次创建请求。</p>
+                    <button id="createBtn" class="main-action-btn">立即创建实例</button>
+                </div>
+
+                <!-- Loop Create UI -->
+                <div id="loopCreateUI" class="hidden">
+                    <p style="color:var(--warning)">循环创建模式将按照设定间隔持续发送请求，请注意账号风险。</p>
+                    <div style="margin: 15px 0;">
+                        <label>请求间隔(秒): </label>
+                        <input type="number" id="intervalInput" value="30" min="10" style="width:80px;">
+                    </div>
+                    <button id="autoCreateBtn" class="main-action-btn danger">开始循环创建</button>
+                    <div id="createProgressContainer" class="progress-bar-container">
+                        <div id="createProgressBar" class="progress-bar"></div>
+                    </div>
+                    <p id="repeatCount" style="margin-top:5px; font-weight:bold;">已发送请求: 0 次</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instances Table Section -->
+        <section id="instanceModeSection" class="hidden">
+            <h3 style="margin-top:0; margin-bottom:15px;">我的实例列表</h3>
+            <div class="table-container">
+                <table id="instancesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>CPU核心</th>
+                            <th>内存</th>
+                            <th>磁盘</th>
+                            <th>创建时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instancesBody"></tbody>
+                </table>
+            </div>
+
+            <div id="reconfigActionArea" class="actions-panel hidden">
+                <h3 style="margin-top:0;">变配操作</h3>
+                <p>当前选中实例：<span id="selectedInstanceName" style="font-weight:bold;"></span></p>
+                <p>目标配置：<span id="targetConfigName" style="font-weight:bold; color:var(--primary);">--</span> (请在创建列表中选择配置)</p>
+                
+                <div id="manualReconfig">
+                    <button id="reconfigureBtn" class="main-action-btn">执行变配</button>
+                </div>
+                
+                <div id="autoReconfig" class="hidden">
+                    <p style="color:var(--warning)">目标配置暂不可购买，将尝试自动变配。</p>
+                    <div style="margin: 15px 0;">
+                        <label>请求间隔(秒): </label>
+                        <input type="number" id="instanceIntervalInput" value="30" min="10" style="width:80px;">
+                    </div>
+                    <button id="autoReconfigureBtn" class="main-action-btn danger">开始自动变配</button>
+                    <div id="reconfigProgressContainer" class="progress-bar-container">
+                        <div id="reconfigProgressBar" class="progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div id="errorArea" style="text-align:center; padding:20px; color:var(--error); display:none;"></div>
+    </main>
+    
+    <footer style="text-align:center; margin-top:30px; color:#999; font-size:12px;">
+        <p>使用此工具产生的任何后果由使用者自行承担。</p>
+        <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" style="color:inherit; text-decoration:none;">GitHub Project</a>
+    </footer>
 </div>
+
 <script>
-    const simpCreateApp = {
-        config: {
-            VERSION_ID: '191',
-            API_BASE: 'https://api.simpfun.cn/api',
-            GRADE_ORDER: ["C+", "C++", "B-", "B", "B+", "B++", "A", "S-", "S", "S+"],
-            SPEC_ORDER: ["M", "M+", "L", "L+", "XL", "2XL", "3XL"],
-            MIN_INTERVAL: 10
-        },
-        state: {
-            token: null,
-            selectedConfig: null,
-            selectedInstanceId: null,
-            isInstanceMode: false,
-            sortKey: '',
-            sortAsc: true,
-            createIntervalId: null,
-            reconfigIntervalId: null,
-            createRepeatCount: 0,
-            isLoadingDetail: false
-        },
-        elements: {},
-        init() {
-            this.cacheDOMElements();
-            this.bindEvents();
-            // localStorage.clear(); // 考虑是否每次都清除，或仅在特定条件清除
-            this.state.token = this.getCookie('sf_token');
-            if (this.state.token) {
-                this.elements.tutorial.classList.remove('expanded');
-                this.elements.refreshBtn.style.display = 'block';
-                this.loadConfigs().catch(error => console.error('初始化加载配置失败:', error));
-                this.getUserInfo().catch(error => console.error('初始化获取用户信息失败:', error));
-            } else {
-                this.elements.tutorial.classList.add('expanded');
-            }
-        },
-        async getUserInfo() {
-            if (!this.state.token) return;
-            try {
-                const data = await this.apiFetch("/auth/info?");
-                const info = data.info;
-                const proBadge = info.is_pro ? ' <span class="pro-badge">Pro</span>' : '';
-                const userInfoHTML = `账号: <span class="clickable-info" data-copy-value="${info.username}">${info.username}</span>${proBadge} (UID: <span class="clickable-info" data-copy-value="${info.id}">${info.id}</span>) 积分: ${info.point} 钻石: ${info.diamond}`;
-                this.elements.userInfo.innerHTML = userInfoHTML;
-            } catch (error) {
-                console.error('获取用户信息失败:', error);
-                // 当获取用户信息失败时，也提示token失效
-                this.handleTokenError('Token 已过期或无效，请重新输入 Token');
-            }
-        },
-        cacheDOMElements() {
-            const ids = [
-                'tutorial', 'tokenInput', 'submitTokenBtn', 'clearTokenBtn', 'loading', 'error',
-                'configTable', 'configBody', 'createBtn', 'refreshBtn', 'intervalControl',
-                'intervalInput', 'repeatCount', 'result', 'modeToggle', 'myInstancesSection',
-                'instancesLoading', 'instancesError', 'instancesTable', 'instancesBody',
-                'reconfigureBtn', 'reconfigureResult', 'autoReconfigControl', 'autoReconfigureBtn',
-                'instanceIntervalInput',
-                'userInfo'
-            ];
-            ids.forEach(id => {
-                this.elements[id] = document.getElementById(id);
-            });
-        },
-        bindEvents() {
-            this.elements.submitTokenBtn.addEventListener('click', () => this.submitToken());
-            this.elements.clearTokenBtn.addEventListener('click', () => this.clearToken());
-            this.elements.createBtn.addEventListener('click', () => this.handleCreateClick());
-            this.elements.refreshBtn.addEventListener('click', () => this.refreshData());
-            this.elements.modeToggle.addEventListener('click', () => this.toggleMode());
-            this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance());
-            this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfigure());
+/**
+ * Toast Notification System
+ */
+const Toast = {
+    container: document.getElementById('toast-container'),
+    show(message, type = 'info', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span>${message}</span>
+            <span style="cursor:pointer; margin-left:10px; opacity:0.6" onclick="this.parentElement.remove()">✕</span>
+        `;
+        this.container.appendChild(toast);
 
-            // 绑定点击复制事件 (使用事件委托)
-            document.addEventListener('click', (event) => {
-                if (event.target.classList.contains('clickable-info')) {
-                    const textToCopy = event.target.getAttribute('data-copy-value');
-                    if (textToCopy) {
-                        this.copyToClipboard(textToCopy);
-                    }
-                }
-            });
-
-            // 绑定表格排序事件 (使用事件委托)
-            const sortableHeaders = this.elements.configTable.querySelectorAll('thead th, tfoot th');
-            sortableHeaders.forEach(th => {
-                const key = this.getHeaderKey(th.textContent);
-                if (key) {
-                    th.style.cursor = 'pointer';
-                    th.addEventListener('click', () => this.toggleSort(key));
-                }
-            });
-        },
-        getHeaderKey(headerText) {
-            const cleanText = headerText.replace(/ ▲| ▼/, '').trim();
-            const columnMap = {
-                'ID': 'id',
-                'CPU等级': 'area_grade',
-                '供应商': 'area_vendor',
-                'CPU核心数': 'cpu',
-                '内存(GB)': 'ram',
-                '磁盘(GB)': 'disk',
-                '流量(GB)': 'traffic',
-                '积分': 'point',
-                '规格': 'spec',
-                '可创建': 'creatable'
-            };
-            return columnMap[cleanText] || null;
-        },
-        async copyToClipboard(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                this.showCopyHint(`已复制: ${text}`);
-            } catch (err) {
-                console.error('复制失败:', err);
-                this.showCopyHint('复制失败');
-            }
-        },
-        showCopyHint(message) {
-            // 移除任何已存在的提示
-            const existingHint = document.querySelector('.copy-hint');
-            if (existingHint) {
-                existingHint.remove();
-            }
-            // 创建新的提示元素
-            const hint = document.createElement('div');
-            hint.className = 'copy-hint';
-            hint.textContent = message;
-            document.body.appendChild(hint);
-            // 2秒后移除提示
+        if (duration > 0) {
             setTimeout(() => {
-                if (hint.parentNode) {
-                    hint.parentNode.removeChild(hint);
-                }
-            }, 2000);
-        },
-        // ====== Cookie Management ======
-        setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
-        },
-        getCookie(name) {
-            const cookies = document.cookie.split('; ');
-            for (const cookie of cookies) {
-                const [key, value] = cookie.split('=');
-                if (key === name) return decodeURIComponent(value); // 解码 Cookie 值
-            }
-            return null;
-        },
-        deleteCookie(name) {
-            this.setCookie(name, '', -1);
-        },
-        // ====== UI and Display Logic ======
-        toggleTutorial() {
+                toast.style.animation = 'slideIn 0.3s reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+    },
+    success(msg) { this.show(msg, 'success'); },
+    error(msg) { this.show(msg, 'error', 5000); },
+    warning(msg) { this.show(msg, 'warning'); }
+};
+
+/**
+ * Main Application Logic
+ */
+const simpCreateApp = {
+    config: {
+        VERSION_ID: '191',
+        API_BASE: 'https://api.simpfun.cn/api',
+        GRADE_ORDER: ["C+", "C++", "B-", "B", "B+", "B++", "A", "S-", "S", "S+"],
+        SPEC_ORDER: ["M", "M+", "L", "L+", "XL", "2XL", "3XL"],
+        MIN_INTERVAL: 10
+    },
+    state: {
+        token: null,
+        selectedConfig: null,
+        selectedInstanceId: null,
+        isInstanceMode: false,
+        sortKey: 'area_grade', // 默认排序键
+        sortAsc: true,         // 默认升序
+        createIntervalId: null,
+        reconfigIntervalId: null,
+        createRepeatCount: 0,
+        isLoadingDetail: false,
+        cachedConfigs: []
+    },
+    elements: {},
+    
+    init() {
+        this.cacheDOM();
+        this.bindEvents();
+        
+        const storedToken = this.getCookie('sf_token');
+        if (storedToken) {
+            this.state.token = storedToken;
+            this.elements.tokenInput.value = storedToken;
+            this.elements.tutorial.classList.remove('expanded');
+            this.elements.refreshBtn.style.display = 'block';
+            this.refreshData(true);
+        }
+    },
+
+    cacheDOM() {
+        const ids = [
+            'tutorial', 'tutorialHeader', 'tokenInput', 'submitTokenBtn', 'clearTokenBtn',
+            'loadingArea', 'errorArea',
+            'configTable', 'configBody', 'createModeSection', 'instanceModeSection',
+            'modeCreateBtn', 'modeInstanceBtn', 'refreshBtn',
+            'createActionArea', 'selectedConfigName', 'createBtn', 
+            'singleCreateUI', 'loopCreateUI', 'autoCreateBtn',
+            'intervalInput', 'repeatCount', 'createProgressContainer', 'createProgressBar',
+            'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName', 
+            'targetConfigName', 'reconfigureBtn', 'autoReconfig', 'autoReconfigureBtn',
+            'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'userInfo'
+        ];
+        ids.forEach(id => this.elements[id] = document.getElementById(id));
+    },
+
+    bindEvents() {
+        // Token
+        this.elements.submitTokenBtn.addEventListener('click', () => this.submitToken());
+        this.elements.clearTokenBtn.addEventListener('click', () => this.clearToken());
+        
+        // Tutorial Toggle
+        this.elements.tutorialHeader.addEventListener('click', () => {
             this.elements.tutorial.classList.toggle('expanded');
-        },
-        showMessage(element, message, type = 'success', duration = 3000) {
-            element.innerHTML = message; // Use innerHTML to allow for simple formatting if needed
-            element.className = type; // 'success', 'error', 'loading'
-            element.style.display = 'block';
-            if (duration > 0) {
-                setTimeout(() => {
-                    element.style.display = 'none';
-                }, duration);
-            }
-        },
-        toggleLoading(isLoading, section = 'main') {
-            const loadingEl = section === 'main' ? this.elements.loading : this.elements.instancesLoading;
-            const errorEl = section === 'main' ? this.elements.error : this.elements.instancesError;
-            loadingEl.style.display = isLoading ? 'block' : 'none';
-            if (isLoading) errorEl.style.display = 'none';
-        },
-        updateReconfigureControls() {
-            if (!this.state.isInstanceMode) {
-                this.elements.reconfigureBtn.style.display = 'none';
-                this.elements.autoReconfigControl.style.display = 'none';
-                return;
-            }
-            const canShowControls = this.state.selectedInstanceId && this.state.selectedConfig;
-            if (!canShowControls) {
-                 this.elements.reconfigureBtn.style.display = 'none';
-                 this.elements.autoReconfigControl.style.display = 'none';
-                 return;
-            }
-            const isCreatable = this.state.selectedConfig.creatable;
-            this.elements.reconfigureBtn.style.display = isCreatable ? 'block' : 'none';
-            this.elements.autoReconfigControl.style.display = !isCreatable ? 'block' : 'none';
-        },
-        async apiFetch(endpoint, options = {}) {
-            const url = `${this.config.API_BASE}${endpoint}`;
-            const headers = {
-                'Authorization': this.state.token,
-                'Accept': 'application/json',
-                ...options.headers,
-            };
-            const config = { ...options, headers };
+        });
 
-            const response = await fetch(url, config);
-            if (response.status === 401) {
-                 this.handleTokenError('Token 已过期或无效，请重新输入 Token');
-                 throw new Error('Token validation failed');
-            }
-            const data = await response.json();
-            // 处理响应不成功或服务器端错误 (状态码为200但body中code非200)
-            if (!response.ok || data.code !== 200) {
-                // 优先使用服务器返回的错误信息
-                const errorMessage = data.msg || data.message || `HTTP error! status: ${response.status}`;
-                throw new Error(errorMessage);
-            }
-            return data;
-        },
-        async loadConfigs() {
-            if (!this.state.token) return;
-            this.toggleLoading(true, 'main');
-            try {
-                const data = await this.apiFetch(`/shop/list?version_id=${this.config.VERSION_ID}`);
-                localStorage.setItem('cachedConfigs', JSON.stringify(data.list));
-                this.renderConfigs(data.list);
-                if (this.state.isInstanceMode) {
-                    this.loadInstances();
-                }
-            } catch (error) {
-                console.error('获取配置失败:', error); // 记录错误日志
-                this.showMessage(this.elements.error, `获取配置失败: ${error.message}`, 'error', 5000);
-            } finally {
-                this.toggleLoading(false, 'main');
-            }
-        },
-        async loadInstances() {
-            if (!this.state.token) {
-                 this.showMessage(this.elements.instancesError, '请先提交有效的 Token', 'error', 5000);
-                 return;
-            }
-            this.toggleLoading(true, 'instances');
-            try {
-                const data = await this.apiFetch('/ins/list?');
-                this.renderInstances(data.list);
-            } catch (error) {
-                console.error('获取实例失败:', error); // 记录错误日志
-                this.showMessage(this.elements.instancesError, `获取实例失败: ${error.message}`, 'error', 5000);
-            } finally {
-                this.toggleLoading(false, 'instances');
-            }
-        },
-        async loadInstanceDetail(instanceId, rowElement) {
-            if (this.state.isLoadingDetail) return;
-            this.state.isLoadingDetail = true;
-            // 移除之前可能存在的详情行
-            document.querySelectorAll('.instance-detail-row').forEach(row => row.remove());
-            try {
-                const data = await this.apiFetch(`/ins/${instanceId}/detail`);
-                this.renderInstanceDetail(data.data, rowElement);
-            } catch (error) {
-                console.error('获取实例详情失败:', error); // 记录错误日志
-                this.showMessage(this.elements.instancesError, `获取实例详情失败: ${error.message}`, 'error', 5000);
-            } finally {
-                this.state.isLoadingDetail = false;
-            }
-        },
-        // ====== Rendering Logic ======
-        renderConfigs(data) {
-            // 设置默认排序为CPU等级从低到高
-            if (!this.state.sortKey) {
-                this.state.sortKey = 'area_grade';
-                this.state.sortAsc = true;
-            }
-            const sortedData = this.sortData(data, this.state.sortKey, this.state.sortAsc);
-            const tbody = this.elements.configBody;
-            tbody.innerHTML = ''; // 清空现有内容
+        // Modes
+        this.elements.modeCreateBtn.addEventListener('click', () => this.switchMode(false));
+        this.elements.modeInstanceBtn.addEventListener('click', () => this.switchMode(true));
+        
+        // Create Mode
+        this.elements.refreshBtn.addEventListener('click', () => this.refreshData());
+        this.elements.createBtn.addEventListener('click', () => this.createInstance());
+        this.elements.autoCreateBtn.addEventListener('click', () => this.toggleAutoCreate());
+        
+        // Instance Mode
+        this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance(false));
+        this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfig());
 
-            const fragment = document.createDocumentFragment(); // 使用文档片段提高性能 [[7]]
-
-            sortedData.forEach(cfg => {
-                const tr = document.createElement('tr');
-                tr.className = cfg.creatable ? 'creatable-row' : 'not-creatable-row';
-
-                // 使用模板字符串简化HTML构建 [[3]]
-                tr.innerHTML = `
-                    <td>${cfg.id}</td>
-                    <td>${cfg.area_grade}</td>
-                    <td>${cfg.area_vendor}</td>
-                    <td>${cfg.cpu}</td>
-                    <td>${cfg.ram}</td>
-                    <td>${cfg.disk}</td>
-                    <td>${cfg.traffic}</td>
-                    <td>${cfg.point}</td>
-                    <td>${cfg.spec}</td>
-                    <td class="${cfg.creatable ? 'creatable' : 'not-creatable'}">${cfg.creatable ? '是' : '否'}</td>`;
-
-                tr.addEventListener('click', () => {
-                    this.state.selectedConfig = cfg;
-                    // 移除所有行的选中状态
-                    tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
-                    tr.classList.add('selected');
-                    this.elements.createBtn.disabled = false;
-                    this.elements.createBtn.textContent = cfg.creatable ? '创建实例' : '开始自动创建';
-                    this.elements.intervalControl.style.display = !cfg.creatable && !this.state.isInstanceMode ? 'block' : 'none';
-                    this.updateReconfigureControls();
-                });
-
-                fragment.appendChild(tr);
+        // Table Sort Delegation
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                this.state.sortKey = th.dataset.key;
+                this.state.sortAsc = (this.state.lastSortKey === th.dataset.key) ? !this.state.sortAsc : true;
+                this.state.lastSortKey = th.dataset.key;
+                this.renderConfigs();
             });
+        });
 
-            tbody.appendChild(fragment); // 一次性添加所有行
-
-            this.elements.configTable.style.display = 'table';
-            this.elements.createBtn.style.display = this.state.isInstanceMode ? 'none' : 'block';
-            this.updateSortHeaders();
-        },
-        renderInstances(instances) {
-            const tbody = this.elements.instancesBody;
-            tbody.innerHTML = ''; // 清空现有内容
-
-            const fragment = document.createDocumentFragment();
-
-            if (!instances || instances.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="6" style="text-align: center;">暂无实例</td>';
-                fragment.appendChild(tr);
-            } else {
-                instances.forEach(instance => {
-                    const tr = document.createElement('tr');
-                    tr.style.cursor = 'pointer';
-                    tr.title = '点击查看实例详情';
-
-                    // 使用模板字符串简化HTML构建 [[3]]
-                    tr.innerHTML = `
-                        <td>${instance.id}</td>
-                        <td>${instance.name || '未命名'}</td>
-                        <td>${instance.cpu}</td>
-                        <td>${instance.ram}</td>
-                        <td>${instance.disk}</td>
-                        <td>${new Date(instance.create_time).toLocaleString()}</td>`;
-
-                    tr.addEventListener('click', () => {
-                        this.state.selectedInstanceId = instance.id;
-                        // 移除所有行的选中状态
-                        tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
-                        tr.classList.add('selected');
-                        this.loadInstanceDetail(instance.id, tr);
-                        this.updateReconfigureControls();
-                    });
-
-                    fragment.appendChild(tr);
-                });
+        // Copy Delegation
+        document.body.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('clickable-copy')) {
+                const text = e.target.dataset.copy;
+                try {
+                    await navigator.clipboard.writeText(text);
+                    Toast.show(`已复制: ${text}`, 'success', 1500);
+                } catch (err) {
+                    Toast.show('复制失败', 'error');
+                }
             }
+        });
+    },
 
-            tbody.appendChild(fragment);
-            this.elements.instancesTable.style.display = 'table';
-        },
-        renderInstanceDetail(instance, rowElement) {
-            const cachedConfigs = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
-            const matchingConfig = cachedConfigs.find(cfg => cfg.id == instance.shop_id);
+    toggleCreateUI() {
+        const isLoop = document.querySelector('input[name="createMode"]:checked').value === 'loop';
+        if (isLoop) {
+            this.elements.singleCreateUI.classList.add('hidden');
+            this.elements.loopCreateUI.classList.remove('hidden');
+        } else {
+            this.elements.singleCreateUI.classList.remove('hidden');
+            this.elements.loopCreateUI.classList.add('hidden');
+            if(this.state.createIntervalId) this.stopAutoCreate();
+        }
+    },
 
+    // --- API & Data ---
+    async apiFetch(endpoint, options = {}) {
+        const url = `${this.config.API_BASE}${endpoint}`;
+        const headers = { 'Authorization': this.state.token, 'Accept': 'application/json', ...options.headers };
+        
+        try {
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) throw new Error('Token 无效或已过期');
+            const data = await response.json();
+            if (!response.ok || data.code !== 200) throw new Error(data.msg || `HTTP Error ${response.status}`);
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    async refreshData(isInit = false) {
+        this.toggleLoading(true);
+        this.elements.errorArea.style.display = 'none';
+        try {
+            await Promise.all([
+                this.getUserInfo(),
+                this.loadConfigs()
+            ]);
+            if (this.state.isInstanceMode) await this.loadInstances();
+            if(!isInit) Toast.success('数据刷新成功');
+        } catch (error) {
+            this.elements.errorArea.textContent = error.message;
+            this.elements.errorArea.style.display = 'block';
+            if(error.message.includes('Token')) this.clearToken(false);
+        } finally {
+            this.toggleLoading(false);
+        }
+    },
+
+    async getUserInfo() {
+        const data = await this.apiFetch("/auth/info?");
+        const info = data.info;
+        const proBadge = info.is_pro ? '<span class="pro-badge">PRO</span>' : '';
+        this.elements.userInfo.innerHTML = `
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span class="clickable-copy" data-copy="${info.username}" style="cursor:pointer; font-weight:bold;">👤 ${info.username}</span>
+                ${proBadge}
+            </div>
+            <div style="font-size:0.85rem; color:#666;">
+                UID: <span class="clickable-copy" data-copy="${info.id}">${info.id}</span> | 
+                积分: ${info.point} | 
+                钻石: ${info.diamond}
+            </div>
+        `;
+    },
+
+    async loadConfigs() {
+        const data = await this.apiFetch(`/shop/list?version_id=${this.config.VERSION_ID}`);
+        this.state.cachedConfigs = data.list;
+        this.renderConfigs();
+    },
+
+    async loadInstances() {
+        const data = await this.apiFetch('/ins/list?');
+        this.renderInstances(data.list);
+    },
+
+    // --- Rendering ---
+    renderConfigs() {
+        const data = [...this.state.cachedConfigs];
+        
+        // Sort
+        if (this.state.sortKey) {
+            data.sort((a, b) => {
+                let valA = a[this.state.sortKey];
+                let valB = b[this.state.sortKey];
+                
+                if (this.state.sortKey === 'area_grade') {
+                    valA = this.config.GRADE_ORDER.indexOf(valA);
+                    valB = this.config.GRADE_ORDER.indexOf(valB);
+                } else if (this.state.sortKey === 'spec') {
+                    valA = this.config.SPEC_ORDER.indexOf(valA);
+                    valB = this.config.SPEC_ORDER.indexOf(valB);
+                } else if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                
+                if (valA < valB) return this.state.sortAsc ? -1 : 1;
+                if (valA > valB) return this.state.sortAsc ? 1 : -1;
+                return 0;
+            });
+            
+            // Update Header Arrows
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.innerHTML = th.innerText.replace(' ▲', '').replace(' ▼', '');
+                if(th.dataset.key === this.state.sortKey) {
+                    th.innerHTML += this.state.sortAsc ? ' ▲' : ' ▼';
+                }
+            });
+        }
+
+        const tbody = this.elements.configBody;
+        tbody.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        data.forEach(cfg => {
+            const tr = document.createElement('tr');
+            if (cfg.creatable) tr.className = 'creatable-row';
+            if (this.state.selectedConfig && this.state.selectedConfig.id === cfg.id) tr.classList.add('selected');
+
+            tr.innerHTML = `
+                <td>${cfg.id}</td>
+                <td>${cfg.area_grade}</td>
+                <td>${cfg.area_vendor}</td>
+                <td>${cfg.cpu}</td>
+                <td>${cfg.ram}</td>
+                <td>${cfg.disk}</td>
+                <td>${cfg.traffic}</td>
+                <td>${cfg.point}</td>
+                <td>${cfg.spec}</td>
+                <td><span class="status-tag ${cfg.creatable ? 'status-yes' : 'status-no'}">${cfg.creatable ? '可创建' : '缺货'}</span></td>
+            `;
+
+            tr.addEventListener('click', () => this.selectConfig(cfg));
+            fragment.appendChild(tr);
+        });
+        tbody.appendChild(fragment);
+    },
+
+    renderInstances(instances) {
+        const tbody = this.elements.instancesBody;
+        tbody.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        if (!instances || instances.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">暂无实例</td></tr>';
+            this.elements.reconfigActionArea.classList.add('hidden');
+            return;
+        }
+
+        instances.forEach(ins => {
+            const tr = document.createElement('tr');
+            if (this.state.selectedInstanceId === ins.id) tr.classList.add('selected');
+
+            tr.innerHTML = `
+                <td>${ins.id}</td>
+                <td>${ins.name || '未命名'}</td>
+                <td>${ins.cpu}核</td>
+                <td>${ins.ram}G</td>
+                <td>${ins.disk}G</td>
+                <td style="font-size:0.85rem; color:#666;">${new Date(ins.create_time).toLocaleString()}</td>
+            `;
+
+            tr.addEventListener('click', () => this.selectInstance(ins, tr));
+            fragment.appendChild(tr);
+        });
+        tbody.appendChild(fragment);
+    },
+
+    selectConfig(cfg) {
+        this.state.selectedConfig = cfg;
+        
+        this.renderConfigs(); 
+
+        this.elements.selectedConfigName.textContent = `${cfg.area_grade} / ${cfg.spec} (${cfg.cpu}C/${cfg.ram}G)`;
+        this.elements.targetConfigName.textContent = this.elements.selectedConfigName.textContent;
+        
+        this.elements.createActionArea.classList.remove('hidden');
+
+        if (this.state.isInstanceMode && this.state.selectedInstanceId) {
+            this.updateReconfigControls(cfg);
+        }
+    },
+
+    async selectInstance(ins, rowEl) {
+        this.state.selectedInstanceId = ins.id;
+        this.elements.selectedInstanceName.textContent = `${ins.name || ins.id} (${ins.area_grade})`;
+
+        document.querySelectorAll('#instancesBody tr').forEach(tr => tr.classList.remove('selected'));
+        rowEl.classList.add('selected');
+        
+        document.querySelectorAll('.instance-detail-row').forEach(r => r.remove());
+
+        try {
+            const detailData = await this.apiFetch(`/ins/${ins.id}/detail`);
+            const insDetail = detailData.data;
+            
             const detailRow = document.createElement('tr');
             detailRow.className = 'instance-detail-row';
-            const detailHtml = `
+            detailRow.innerHTML = `
                 <td colspan="6">
                     <div class="instance-detail">
-                        <h3>实例详情</h3>
-                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <strong>实例详情：</strong>
+                        <table class="detail-table">
+                            <tr><th>当前配置ID</th><th>当前积分</th><th>状态</th></tr>
                             <tr>
-                                <th style="padding: 5px; border: 1px solid #ddd;">积分</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">等级</th>
-                                <th style="padding: 5px; border: 1px solid #ddd;">状态</th>
-                            </tr>
-                            <tr>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.point}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.area_grade}</td>
-                                <td style="padding: 5px; border: 1px solid #ddd;">${instance.status}</td>
+                                <td>${insDetail.shop_id}</td>
+                                <td>${insDetail.point}</td>
+                                <td>${insDetail.status}</td>
                             </tr>
                         </table>
                     </div>
-                </td>`;
-
-            detailRow.innerHTML = detailHtml;
-            rowElement.after(detailRow);
+                </td>
+            `;
+            rowEl.after(detailRow);
             detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        },
-        sortData(data, key, asc) {
-            if (!key) return [...data]; // 如果没有排序键，返回原数据副本
 
-            const getSortValue = (item) => {
-                const value = item[key];
-                if (key === 'area_grade') return this.config.GRADE_ORDER.indexOf(value);
-                if (key === 'spec') return this.config.SPEC_ORDER.indexOf(value);
-                if (key === 'creatable') return value ? 0 : 1;
-                const num = parseFloat(value);
-                return isNaN(num) ? String(value) : num;
-            };
+            this.elements.reconfigActionArea.classList.remove('hidden');
+            if (this.state.selectedConfig) {
+                this.updateReconfigControls(this.state.selectedConfig);
+            } else {
+                this.elements.targetConfigName.textContent = "请先在上方创建列表中点击选择一个目标配置";
+                this.elements.manualReconfig.classList.add('hidden');
+                this.elements.autoReconfig.classList.add('hidden');
+            }
+        } catch (e) {
+            Toast.error('加载实例详情失败');
+        }
+    },
 
-            return [...data].sort((a, b) => {
-                const valA = getSortValue(a);
-                const valB = getSortValue(b);
-                if (valA < valB) return asc ? -1 : 1;
-                if (valA > valB) return asc ? 1 : -1;
-                return 0;
+    updateReconfigControls(targetCfg) {
+        this.elements.targetConfigName.textContent = `${targetCfg.area_grade} / ${targetCfg.spec} (${targetCfg.cpu}C/${targetCfg.ram}G)`;
+        if (targetCfg.creatable) {
+            this.elements.manualReconfig.classList.remove('hidden');
+            this.elements.autoReconfig.classList.add('hidden');
+        } else {
+            this.elements.manualReconfig.classList.add('hidden');
+            this.elements.autoReconfig.classList.remove('hidden');
+        }
+    },
+
+    // --- Actions ---
+    switchMode(toInstanceMode) {
+        this.state.isInstanceMode = toInstanceMode;
+        
+        if (toInstanceMode) {
+            this.elements.modeCreateBtn.classList.remove('active');
+            this.elements.modeInstanceBtn.classList.add('active');
+            this.elements.createModeSection.classList.add('hidden');
+            this.elements.instanceModeSection.classList.remove('hidden');
+            
+            if (this.state.token) {
+                this.loadInstances();
+                this.elements.reconfigActionArea.classList.add('hidden');
+            }
+        } else {
+            this.elements.modeInstanceBtn.classList.remove('active');
+            this.elements.modeCreateBtn.classList.add('active');
+            this.elements.instanceModeSection.classList.add('hidden');
+            this.elements.createModeSection.classList.remove('hidden');
+        }
+    },
+
+    async createInstance() {
+        const btn = this.elements.createBtn;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> 创建中...';
+
+        try {
+            const url = `${this.config.API_BASE}/ins/create`;
+            const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': this.state.token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: body
             });
-        },
-        toggleSort(key) {
-            if (this.state.sortKey === key) {
-                this.state.sortAsc = !this.state.sortAsc;
-            } else {
-                this.state.sortKey = key;
-                this.state.sortAsc = true;
+
+            const data = await response.json();
+            
+            if (!response.ok || data.code !== 200) {
+                throw new Error(data.msg || `HTTP ${response.status}`);
             }
-            const cachedData = JSON.parse(localStorage.getItem('cachedConfigs') || '[]');
-            this.renderConfigs(cachedData);
-        },
-        updateSortHeaders() {
-            const headers = this.elements.configTable.querySelectorAll('thead th, tfoot th');
-            headers.forEach(th => {
-                let text = th.textContent.replace(/ ▲| ▼/, '');
-                const key = this.getHeaderKey(text);
-                if (this.state.sortKey === key) {
-                    th.textContent = text + (this.state.sortAsc ? ' ▲' : ' ▼');
-                } else {
-                    th.textContent = text;
-                }
+            
+            Toast.success('实例创建成功！');
+            this.refreshData();
+        } catch (error) {
+            Toast.error(`创建失败: ${error.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    },
+
+    async reconfigureInstance(isAuto = false) {
+        const btn = isAuto ? this.elements.autoReconfigureBtn : this.elements.reconfigureBtn;
+        const originalText = btn.textContent;
+        
+        if (!isAuto) {
+            btn.disabled = true;
+            btn.textContent = '变配中...';
+        }
+
+        try {
+            const body = JSON.stringify({ item_id: this.state.selectedConfig.id });
+            await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body
             });
-        },
-        submitToken() {
-            const tokenValue = this.elements.tokenInput.value.trim();
-            if (!tokenValue) {
-                alert('请输入有效的 Token');
-                return;
+            Toast.success('变配请求成功！');
+            this.loadInstances();
+            
+            if (isAuto) this.stopAutoReconfig();
+        } catch (error) {
+            Toast.error(`变配失败: ${error.message}`);
+            if (!isAuto) {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
-            this.setCookie('sf_token', encodeURIComponent(tokenValue), 30); // 编码 Cookie 值
-            this.state.token = tokenValue;
-            alert('Token 已保存！');
-            this.toggleTutorial();
-            this.elements.refreshBtn.style.display = 'block';
-            this.loadConfigs().catch(error => console.error('提交Token后加载配置失败:', error));
-            this.getUserInfo().catch(error => console.error('提交Token后获取用户信息失败:', error)); 
-        },
-        clearToken() {
-            this.deleteCookie('sf_token');
-            this.state.token = null;
-            this.elements.tokenInput.value = '';
-            this.elements.configTable.style.display = 'none';
-            this.elements.createBtn.style.display = 'none';
-            this.elements.result.style.display = 'none';
-            this.elements.tutorial.classList.add('expanded');
-            alert('Token 已清除！');
-            this.elements.userInfo.innerHTML = ''; 
-        },
-        handleTokenError(message) {
-            this.deleteCookie('sf_token');
-            this.state.token = null;
-            this.elements.tokenInput.value = '';
-            this.elements.tutorial.classList.add('expanded');
-            this.showMessage(this.elements.error, message, 'error', 5000);
-        },
-        handleCreateClick() {
-            if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
-                this.toggleRepeatCreate(); 
-            } else {
-                this.createInstance(); 
-            }
-        },
-        async createInstance() {
-            if (!this.state.selectedConfig) return;
-            const btn = this.elements.createBtn;
-            const isRepeating = !!this.state.createIntervalId;
-            if (isRepeating) {
-                btn.textContent = '停止';
-                btn.classList.add('stop');
-            } else {
-                btn.disabled = true;
-                btn.textContent = '处理中...';
-            }
-
-            try {
-                const body = `item_id=${this.state.selectedConfig.id}&version_id=${this.config.VERSION_ID}`;
-                const response = await fetch(`${this.config.API_BASE}/ins/create`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': this.state.token,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: body
-                });
-                let data;
-                try {
-                    data = await response.json();
-                } catch (jsonError) {
-                    throw new Error(`Invalid JSON response: ${response.status} ${response.statusText}`);
-                }
-                if (response.ok && data && data.code === 200) {
-                    this.showMessage(this.elements.result, `创建成功！`, 'success', 3000);
-                    if (isRepeating) {
-                        this.stopRepeatCreate(true);
-                    }
-                } else {
-                    const errorMessage = data.msg || data.message || `HTTP error! status: ${response.status}`;
-                    throw new Error(errorMessage);
-                }
-            } catch (error) {
-                console.error('创建实例失败:', error);
-                this.showMessage(this.elements.result, `创建失败: ${error.message}`, 'error', 5000);
-            } finally {
-                if (!isRepeating) {
-                    btn.disabled = false;
-                    btn.textContent = '停止'
-                }
-            }
-        },
-        async reconfigureInstance(isAuto = false) {
-             if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
-                if(!isAuto) alert('请先选择一个实例和目标配置');
-                return;
-            }
-            const btn = isAuto ? this.elements.autoReconfigureBtn : this.elements.reconfigureBtn;
-            const resultEl = this.elements.reconfigureResult;
-
-            if(!isAuto) {
-                btn.disabled = true;
-                btn.textContent = '处理中...'; 
-            }
-            this.showMessage(resultEl, '正在提交变配请求...', 'loading', 0);
-
-            try {
-                const body = JSON.stringify({ item_id: this.state.selectedConfig.id });
-                await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: body
-                });
-                this.showMessage(resultEl, '变配请求提交成功！', 'success', 3000);
-                this.loadInstances(); // 变配成功后刷新实例列表
-                if (isAuto && this.state.reconfigIntervalId) {
-                    this.stopAutoReconfigure(true); // 成功后停止自动变配
-                }
-            } catch (error) {
-                console.error('变配实例失败:', error); // 记录错误日志
-                this.showMessage(resultEl, `变配失败: ${error.message}`, 'error', 5000);
-            } finally {
-                if (!isAuto) {
-                     btn.disabled = false;
-                     btn.textContent = '变配';
-                }
-            }
-        },
-        toggleRepeatCreate() {
-            if (this.state.createIntervalId) {
-                this.stopRepeatCreate();
-            } else {
-                this.startRepeatCreate();
-            }
-        },
-        startRepeatCreate() {
-            let interval = parseInt(this.elements.intervalInput.value, 10);
-            if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
-                alert(`间隔时间不能小于${this.config.MIN_INTERVAL}秒，已自动调整。`);
-                interval = this.config.MIN_INTERVAL;
-                this.elements.intervalInput.value = interval;
-            }
-            this.state.createRepeatCount = 0;
-            this.elements.repeatCount.textContent = `重复次数: 0`;
-            this.elements.repeatCount.style.display = 'block';
-            this.elements.intervalControl.style.display = 'none';
-            const btn = this.elements.createBtn;
-            btn.textContent = '停止';
-            btn.classList.add('stop');
-            // 立即执行一次
-            this.createInstance(); 
-            this.state.createIntervalId = setInterval(() => {
-                this.createInstance();
-                this.state.createRepeatCount++;
-                this.elements.repeatCount.textContent = `重复次数: ${this.state.createRepeatCount}`;
-            }, interval * 1000);
-        },
-        stopRepeatCreate(isSuccess = false) {
-            if (this.state.createIntervalId) {
-                clearInterval(this.state.createIntervalId);
-                this.state.createIntervalId = null;
-            }
-            const btn = this.elements.createBtn;
-            btn.textContent = '开始自动创建';
-            btn.classList.remove('stop');
-            if(!isSuccess) {
-                this.elements.intervalControl.style.display = 'block';
-            }
-            this.elements.repeatCount.style.display = 'none';
-        },
-        toggleAutoReconfigure() {
-            if (this.state.reconfigIntervalId) {
-                this.stopAutoReconfigure();
-            } else {
-                this.startAutoReconfigure();
-            }
-        },
-        startAutoReconfigure() {
-            if (!this.state.selectedInstanceId || !this.state.selectedConfig) {
-                alert('请先选择一个实例和目标配置');
-                return;
-            }
-            let interval = parseInt(this.elements.instanceIntervalInput.value, 10);
-            if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
-                alert(`间隔时间不能小于${this.config.MIN_INTERVAL}秒，已自动调整。`);
-                interval = this.config.MIN_INTERVAL;
-                this.elements.instanceIntervalInput.value = interval;
-            }
-            const btn = this.elements.autoReconfigureBtn;
-            btn.textContent = '停止';
-            btn.classList.add('stop');
-            this.elements.instanceIntervalInput.disabled = true;
-            this.reconfigureInstance(true); // 立即执行一次
-            this.state.reconfigIntervalId = setInterval(() => this.reconfigureInstance(true), interval * 1000);
-        },
-        stopAutoReconfigure(isSuccess = false) {
-             clearInterval(this.state.reconfigIntervalId);
-             this.state.reconfigIntervalId = null;
-             const btn = this.elements.autoReconfigureBtn;
-             btn.textContent = '开始自动变配';
-             btn.classList.remove('stop');
-             this.elements.instanceIntervalInput.disabled = false;
-        },
-        async refreshData() {
-            this.showMessage(this.elements.result, '正在刷新...', 'loading', 0);
-            try {
-                await this.loadConfigs();
-                this.showMessage(this.elements.result, '刷新成功！', 'success', 3000);
-            } catch (e) {
-                console.error('刷新数据失败:', e); // 记录错误日志
-                this.showMessage(this.elements.result, `刷新失败: ${e.message}`, 'error', 5000);
-            }
-        },
-        toggleMode() {
-            this.state.isInstanceMode = !this.state.isInstanceMode;
-            const isInstanceMode = this.state.isInstanceMode;
-            this.elements.modeToggle.textContent = isInstanceMode ? '切换到创建实例模式' : '切换到我的实例模式';
-            this.elements.myInstancesSection.style.display = isInstanceMode ? 'block' : 'none';
-            this.elements.createBtn.style.display = isInstanceMode ? 'none' : 'block';
-            this.elements.intervalControl.style.display = 'none';
-            this.elements.repeatCount.style.display = 'none';
-            this.elements.reconfigureBtn.style.display = 'none';
-            this.elements.autoReconfigControl.style.display = 'none';
-            if (isInstanceMode) {
-                this.loadInstances().catch(error => console.error('切换模式加载实例失败:', error));
-            } else {
-                if (this.state.selectedConfig && !this.state.selectedConfig.creatable) {
-                    this.elements.intervalControl.style.display = 'block';
-                }
+        } finally {
+            if (!isAuto) {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
-    };
-    window.addEventListener('load', () => simpCreateApp.init());
+    },
+
+    // --- Auto Tasks Logic ---
+    toggleAutoCreate() {
+        if (this.state.createIntervalId) {
+            this.stopAutoCreate();
+        } else {
+            this.startAutoTask('create');
+        }
+    },
+
+    toggleAutoReconfig() {
+        if (this.state.reconfigIntervalId) {
+            this.stopAutoReconfig();
+        } else {
+            this.startAutoTask('reconfig');
+        }
+    },
+
+    startAutoTask(type) {
+        let intervalInput, btn, progressBar, progressContainer, countEl, action;
+        
+        if (type === 'create') {
+            intervalInput = this.elements.intervalInput;
+            btn = this.elements.autoCreateBtn;
+            progressContainer = this.elements.createProgressContainer;
+            progressBar = this.elements.createProgressBar;
+            countEl = this.elements.repeatCount;
+            action = () => this.createInstance();
+        } else {
+            intervalInput = this.elements.instanceIntervalInput;
+            btn = this.elements.autoReconfigureBtn;
+            progressContainer = this.elements.reconfigProgressContainer;
+            progressBar = this.elements.reconfigProgressBar;
+            action = () => this.reconfigureInstance(true);
+        }
+
+        let interval = parseInt(intervalInput.value);
+        if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
+            Toast.warning(`间隔时间已自动调整为最小值 ${this.config.MIN_INTERVAL} 秒`);
+            interval = this.config.MIN_INTERVAL;
+            intervalInput.value = interval;
+        }
+
+        btn.textContent = '停止';
+        btn.classList.add('danger');
+        intervalInput.disabled = true;
+        progressContainer.style.display = 'block';
+        if (type === 'create') {
+            this.state.createRepeatCount = 0;
+            countEl.textContent = `已发送请求: 0 次`;
+        }
+
+        const runLoop = async () => {
+            if (!this.state.token) return; 
+            
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '0%';
+            setTimeout(() => {
+                progressBar.style.transition = `width ${interval}s linear`;
+                progressBar.style.width = '100%';
+            }, 50);
+
+            await action();
+            
+            if (type === 'create') {
+                this.state.createRepeatCount++;
+                countEl.textContent = `已发送请求: ${this.state.createRepeatCount} 次`;
+            }
+        };
+
+        runLoop();
+        
+        const timerId = setInterval(runLoop, interval * 1000);
+        
+        if (type === 'create') this.state.createIntervalId = timerId;
+        else this.state.reconfigIntervalId = timerId;
+    },
+
+    stopAutoCreate() {
+        if (this.state.createIntervalId) {
+            clearInterval(this.state.createIntervalId);
+            this.state.createIntervalId = null;
+        }
+        this.elements.autoCreateBtn.textContent = '开始循环创建';
+        this.elements.intervalInput.disabled = false;
+        this.elements.createProgressContainer.style.display = 'none';
+        this.elements.createProgressBar.style.width = '0%';
+    },
+
+    stopAutoReconfig() {
+        if (this.state.reconfigIntervalId) {
+            clearInterval(this.state.reconfigIntervalId);
+            this.state.reconfigIntervalId = null;
+        }
+        this.elements.autoReconfigureBtn.textContent = '开始自动变配';
+        this.elements.instanceIntervalInput.disabled = false;
+        this.elements.reconfigProgressContainer.style.display = 'none';
+        this.elements.reconfigProgressBar.style.width = '0%';
+    },
+
+    // --- Utils ---
+    toggleLoading(isLoading) {
+        this.elements.loadingArea.style.display = isLoading ? 'block' : 'none';
+    },
+
+    submitToken() {
+        const token = this.elements.tokenInput.value.trim();
+        if (!token) return Toast.warning('请输入 Token');
+        
+        this.setCookie('sf_token', encodeURIComponent(token), 30);
+        this.state.token = token;
+        this.elements.tutorial.classList.remove('expanded');
+        this.elements.refreshBtn.style.display = 'block';
+        Toast.success('Token 已保存');
+        this.refreshData();
+    },
+
+    clearToken(refresh = true) {
+        this.deleteCookie('sf_token');
+        this.state.token = null;
+        this.elements.tokenInput.value = '';
+        this.elements.tutorial.classList.add('expanded');
+        this.elements.refreshBtn.style.display = 'none';
+        this.elements.createActionArea.classList.add('hidden');
+        this.elements.reconfigActionArea.classList.add('hidden');
+        this.elements.configBody.innerHTML = '';
+        this.elements.instancesBody.innerHTML = '';
+        if(refresh) Toast.warning('Token 已清除');
+    },
+
+    setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+        document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+    },
+
+    getCookie(name) {
+        const cookies = document.cookie.split('; ');
+        for (const cookie of cookies) {
+            const [k, v] = cookie.split('=');
+            if (k === name) return decodeURIComponent(v);
+        }
+        return null;
+    },
+
+    deleteCookie(name) {
+        this.setCookie(name, '', -1);
+    }
+};
+
+// Start App
+window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
 </html>
