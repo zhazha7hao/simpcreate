@@ -84,7 +84,7 @@
 ## 📞 联系方式
 
 - GitHub 仓库：[https://github.com/zhazha7hao/simpcreate](https://github.com/zhazha7hao/simpcreate)
-- 反馈QQ：3377816847
+- QQ：3377816847
 
 ## 📸 项目截图
 
