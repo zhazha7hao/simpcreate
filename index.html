@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="简欢幻实例创建&变配工具，支持获取简幻欢 Token、创建实例、自动创建以及实例变配和自动变配等功能。">
+    <meta name="description" content="简幻欢实例创建&变配工具，支持获取简幻欢 Token、创建实例、自动创建以及实例变配和自动变配等功能。">
     <title>简幻欢实例创建&变配工具</title>
     <style>
         :root {
@@ -623,7 +623,6 @@
                             <th class="sortable" data-key="id">实例ID</th>
                             <th class="sortable" data-key="shop_id">配置ID</th>
                             <th class="sortable" data-key="area_grade">当前实例类型</th>
-                            <!-- 供应商列已移除 -->
                             <th class="sortable" data-key="cpu">CPU核心</th>
                             <th class="sortable" data-key="ram">内存</th>
                             <th class="sortable" data-key="disk">磁盘</th>
@@ -637,7 +636,6 @@
                             <th class="sortable" data-key="id">实例ID</th>
                             <th class="sortable" data-key="shop_id">配置ID</th>
                             <th class="sortable" data-key="area_grade">当前实例类型</th>
-                            <!-- 供应商列已移除 -->
                             <th class="sortable" data-key="cpu">CPU核心</th>
                             <th class="sortable" data-key="ram">内存</th>
                             <th class="sortable" data-key="disk">磁盘</th>
@@ -656,7 +654,7 @@
                 <div id="manualReconfig">
                     <div class="action-buttons-group">
                         <button id="reconfigureBtn" class="main-action-btn">执行变配</button>
-                        <button id="startInstanceBtn" class="main-action-btn success">开服</button>
+                        <button id="startInstanceBtn" class="main-action-btn success">开机</button>
                     </div>
                 </div>
                 
@@ -727,8 +725,7 @@ const simpCreateApp = {
         selectedInstanceId: null,
         selectedInstanceData: null, 
         isInstanceMode: false,
-        // 排序状态
-        isDualSort: false, // 是否启用双重排序
+        isDualSort: false,
         primarySortKey: 'area_grade', 
         primarySortAsc: true,
         secondarySortKey: null,
@@ -777,34 +774,27 @@ const simpCreateApp = {
     },
 
     bindEvents() {
-        // Token
         this.elements.submitTokenBtn.addEventListener('click', () => this.submitToken());
         this.elements.clearTokenBtn.addEventListener('click', () => this.clearToken());
         
-        // Tutorial Toggle
         this.elements.tutorialHeader.addEventListener('click', () => {
             this.elements.tutorial.classList.toggle('expanded');
         });
 
-        // Modes
         this.elements.modeCreateBtn.addEventListener('click', () => this.switchMode(false));
         this.elements.modeInstanceBtn.addEventListener('click', () => this.switchMode(true));
         
-        // Sort Mode Toggle
         this.elements.sortModeToggle.addEventListener('change', (e) => this.toggleSortMode(e.target.checked));
         this.elements.sortModeToggleInst.addEventListener('change', (e) => this.toggleSortMode(e.target.checked));
         
-        // Create Mode
         this.elements.refreshBtn.addEventListener('click', () => this.refreshData());
         this.elements.createBtn.addEventListener('click', () => this.createInstance());
         this.elements.autoCreateBtn.addEventListener('click', () => this.toggleAutoCreate());
         
-        // Instance Mode
         this.elements.reconfigureBtn.addEventListener('click', () => this.reconfigureInstance(false));
         this.elements.startInstanceBtn.addEventListener('click', () => this.startInstance()); 
         this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfig());
 
-        // Table Sort Delegation (Both Tables)
         document.addEventListener('click', (e) => {
             const th = e.target.closest('th.sortable');
             if (th) {
@@ -812,7 +802,6 @@ const simpCreateApp = {
             }
         });
 
-        // Copy Delegation
         document.body.addEventListener('click', async (e) => {
             if (e.target.classList.contains('clickable-copy')) {
                 const text = e.target.dataset.copy;
@@ -825,14 +814,13 @@ const simpCreateApp = {
             }
         });
     },
+
     toggleSortMode(isDual) {
         this.state.isDualSort = isDual;
         
-        // Update UI for both toggles
         this.elements.sortModeToggle.checked = isDual;
         this.elements.sortModeToggleInst.checked = isDual;
         
-        // Update labels
         if (isDual) {
             this.elements.singleSortLabel.classList.remove('active');
             this.elements.dualSortLabel.classList.add('active');
@@ -844,11 +832,9 @@ const simpCreateApp = {
             this.elements.dualSortLabelInst.classList.remove('active');
             this.elements.singleSortLabelInst.classList.add('active');
             
-            // 单排序模式下清除副排序
             this.state.secondarySortKey = null;
         }
         
-        // Refresh tables
         this.renderConfigs();
         this.renderInstances(this.state.cachedInstances || []);
         this.updateSortHeaders();
@@ -862,7 +848,6 @@ const simpCreateApp = {
         const isSecondary = (this.state.secondarySortKey === key);
         
         if (!this.state.isDualSort) {
-            // 单排序模式：点击切换方向或设置新排序
             if (isPrimary) {
                 this.state.primarySortAsc = !this.state.primarySortAsc;
             } else {
@@ -870,23 +855,15 @@ const simpCreateApp = {
                 this.state.primarySortAsc = true;
             }
         } else {
-            // 双重排序模式
             if (isPrimary) {
-                // 情况1：点击当前主排序列 -> 切换方向
                 this.state.primarySortAsc = !this.state.primarySortAsc;
             } else if (isSecondary) {
-                // 情况2：点击当前副排序列 -> 切换方向
                 this.state.secondarySortAsc = !this.state.secondarySortAsc;
             } else {
-                // 情况3：点击一个全新的列
                 if (this.state.secondarySortKey === null) {
-                    // 3a. 当前状态：只有主排序（例如只有 CPU 等级）
-                    //     操作：将新点击的列设为副排序
                     this.state.secondarySortKey = key;
                     this.state.secondarySortAsc = true;
                 } else {
-                    // 3b. 当前状态：已有主排序 + 副排序
-                    //     操作：点击第3个不同的列，清除所有排序，新列变为主排序
                     this.state.primarySortKey = key;
                     this.state.primarySortAsc = true;
                     this.state.secondarySortKey = null;
@@ -894,26 +871,22 @@ const simpCreateApp = {
             }
         }
         
-        // 刷新表格视图
         this.renderConfigs();
         this.renderInstances(this.state.cachedInstances || []);
         this.updateSortHeaders();
     },
+
     updateSortHeaders() {
         document.querySelectorAll('th.sortable').forEach(th => {
-            // 清理旧箭头（移除 ▼ ▲ 和 span）
-            // 注意：textContent 会移除内部 span，所以我们要先保存纯文本标题
             const baseText = th.childNodes[0].textContent.trim(); 
             th.innerHTML = baseText;
 
             const key = th.dataset.key;
             
-            // 主排序箭头
             if (key === this.state.primarySortKey) {
                 const arrow = this.state.primarySortAsc ? '▼' : '▲';
                 th.innerHTML += ` <span class="sort-icon primary">${arrow}</span>`;
             }
-            // 副排序箭头
             else if (this.state.isDualSort && key === this.state.secondarySortKey) {
                 const arrow = this.state.secondarySortAsc ? '▼' : '▲';
                 th.innerHTML += ` <span class="sort-icon secondary">${arrow}</span>`;
@@ -924,38 +897,32 @@ const simpCreateApp = {
     getSortValue(item, key) {
         let val = item[key];
         
-        // Traffic 特殊处理
         if (key === 'traffic') {
-            // 1. 实例详情对象
             if (val && typeof val === 'object' && 'remain_bytes' in val) {
                 return val.remain_bytes;
             }
-            // 2. 数值或字符串，直接转换为数字
             const num = Number(val);
             return isNaN(num) ? 0 : num;
         }
         
-        // 其他字段处理
         if (key === 'area_grade') {
             return this.config.GRADE_ORDER.indexOf(val);
         } else if (key === 'spec') {
             return this.config.SPEC_ORDER.indexOf(val);
         } 
         
-        // 默认处理
         const num = parseFloat(val);
         return isNaN(num) ? String(val).toLowerCase() : num;
     },
+
     sortData(data) {
         return [...data].sort((a, b) => {
-            // 1. 主排序比较
             let valA = this.getSortValue(a, this.state.primarySortKey);
             let valB = this.getSortValue(b, this.state.primarySortKey);
             
             if (valA < valB) return this.state.primarySortAsc ? -1 : 1;
             if (valA > valB) return this.state.primarySortAsc ? 1 : -1;
             
-            // 2. 副排序比较（如果主排序相同且启用双重排序）
             if (this.state.isDualSort && this.state.secondarySortKey) {
                 let valA2 = this.getSortValue(a, this.state.secondarySortKey);
                 let valB2 = this.getSortValue(b, this.state.secondarySortKey);
@@ -984,7 +951,6 @@ const simpCreateApp = {
         }
     },
 
-    // --- API & Data ---
     async apiFetch(endpoint, options = {}) {
         const url = `${this.config.API_BASE}${endpoint}`;
         const headers = { 'Authorization': this.state.token, 'Accept': 'application/json', ...options.headers };
@@ -1076,7 +1042,6 @@ const simpCreateApp = {
         }
     },
 
-    // --- Rendering ---
     renderConfigs() {
         const data = this.sortData(this.state.cachedConfigs);
         
@@ -1125,7 +1090,6 @@ const simpCreateApp = {
             const tr = document.createElement('tr');
             if (this.state.selectedInstanceId === ins.id) tr.classList.add('selected');
 
-            // 流量计算
             let trafficInfo = '-';
             if (ins.traffic && typeof ins.traffic === 'object' && ins.traffic.plan) {
                 const remainGB = (ins.traffic.remain_bytes / (1024*1024*1024)).toFixed(2);
@@ -1139,7 +1103,6 @@ const simpCreateApp = {
                 <td>${ins.id}</td>
                 <td>${ins.shop_id || '-'}</td>
                 <td>${ins.area_grade || '-'}</td>
-                <!-- 供应商列已移除 -->
                 <td>${ins.cpu}核</td>
                 <td>${ins.ram}GB</td>
                 <td>${ins.disk}GB</td>
@@ -1203,7 +1166,6 @@ const simpCreateApp = {
         }
     },
 
-    // --- Actions ---
     switchMode(toInstanceMode) {
         this.state.isInstanceMode = toInstanceMode;
         
@@ -1213,7 +1175,6 @@ const simpCreateApp = {
             this.elements.createModeSection.classList.add('hidden');
             this.elements.instanceModeSection.classList.remove('hidden');
             
-            // Sync sort mode toggle
             this.elements.sortModeToggleInst.checked = this.state.isDualSort;
             if (this.state.isDualSort) {
                 this.elements.singleSortLabelInst.classList.remove('active');
@@ -1261,8 +1222,17 @@ const simpCreateApp = {
                 throw new Error(data.msg || `HTTP ${response.status}`);
             }
             
-            Toast.success('实例创建成功！');
-            this.refreshData();
+            // 刷新配置列表
+            await this.loadConfigs();
+            
+            // 🔧 修复：创建成功后，无论配置是否仍可创建，都停止循环创建
+            if (this.state.createIntervalId) {
+                this.stopAutoCreate();
+                Toast.success('实例创建成功！已自动停止循环创建', 4000);
+            } else {
+                Toast.success('实例创建成功！');
+            }
+            
         } catch (error) {
             Toast.error(`创建失败: ${error.message}`);
         } finally {
@@ -1287,10 +1257,15 @@ const simpCreateApp = {
                 headers: { 'Content-Type': 'application/json' },
                 body
             });
-            Toast.success('变配请求成功！');
             this.loadInstances();
             
-            if (isAuto) this.stopAutoReconfig();
+            // 🔧 修复：变配成功后，根据模式显示不同提示
+            if (isAuto) {
+                this.stopAutoReconfig();
+                Toast.success('变配成功！已自动停止循环变配', 4000);
+            } else {
+                Toast.success('变配请求成功！');
+            }
         } catch (error) {
             Toast.error(`变配失败: ${error.message}`);
             if (!isAuto) {
@@ -1309,20 +1284,19 @@ const simpCreateApp = {
         const btn = this.elements.startInstanceBtn;
         const originalText = btn.textContent;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span> 开服中...';
+        btn.innerHTML = '<span class="spinner"></span> 开机中...';
 
         try {
             const data = await this.apiFetch(`/ins/${this.state.selectedInstanceId}/power?action=start`);
-            Toast.success(data.msg || '开服成功');
+            Toast.success(data.msg || '开机成功');
         } catch (error) {
-            Toast.error(`开服失败: ${error.message}`);
+            Toast.error(`开机失败: ${error.message}`);
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
         }
     },
 
-    // --- Auto Tasks Logic ---
     toggleAutoCreate() {
         if (this.state.createIntervalId) {
             this.stopAutoCreate();
@@ -1421,7 +1395,6 @@ const simpCreateApp = {
         this.elements.reconfigProgressBar.style.width = '0%';
     },
 
-    // --- Utils ---
     toggleLoading(isLoading) {
         this.elements.loadingArea.style.display = isLoading ? 'block' : 'none';
     },
@@ -1471,7 +1444,6 @@ const simpCreateApp = {
     }
 };
 
-// Start App
 window.addEventListener('load', () => simpCreateApp.init());
 </script>
 </body>
