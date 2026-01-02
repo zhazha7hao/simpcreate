@@ -2,7 +2,8 @@
 
 ## 简介
 简幻欢实例创建&变配工具是一个用于快捷创建或变配简幻欢实例的网页工具。可以通过该网站获取我的实例和简幻欢的实例信息，然后创建所需的实例（默认为AIO镜像，可在创建完成后重装），或变配我的实例。
-<img width="1243" height="1939" alt="image" src="https://github.com/user-attachments/assets/96dd8850-e126-4409-8bdd-675b9294202d" />
+<img width="1209" height="1175" alt="image" src="https://github.com/user-attachments/assets/4c512cb0-b24a-4d37-9fdb-f08c508d1f3b" />
+
 
 
 
