@@ -373,6 +373,11 @@
             background: #ffebee;
         }
 
+        .status-warning {
+            color: var(--warning);
+            background: #fff3e0;
+        }
+
         /* Actions Panel */
         .actions-panel {
             text-align: center;
@@ -625,6 +630,25 @@
             font-weight: 500;
         }
 
+        .mode-switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .mode-label {
+            color: var(--text-sec);
+            transition: color 0.3s;
+        }
+
+        .mode-label.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
         /* Utility Classes (Refactored from inline styles) */
         .tutorial-title {
             margin: 0;
@@ -833,7 +857,7 @@
             <div class="tutorial-content">
                 <ol>
                     <li>将下方按钮拖拽到浏览器收藏夹：
-                        <a href="javascript:(function(){navigator.clipboard.writeText(localStorage.getItem('token')).then(()=>alert('Token 已复制到剪贴板！')).catch(()=>alert('复制失败，请手动复制：'+localStorage.getItem('token')));})();"
+                        <a href="javascript:(function(){const t=localStorage.getItem('token');if(t&&t!=='null'){navigator.clipboard.writeText(t).then(()=>alert('✅ Token 已成功获取并复制到剪贴板！')).catch(()=>alert('获取成功但复制失败，请手动复制：'+t));}else{alert('❌ 获取失败：找不到 Token。请确保您已登录且处于简幻欢控制台页面。');}})();"
                             class="bookmarklet">简幻欢Token获取</a>
                     </li>
                     <li>访问 <a href="https://simpfun.cn/console" target="_blank" rel="noopener"
@@ -905,7 +929,7 @@
                                 <th class="sortable" data-key="traffic">流量</th>
                                 <th class="sortable" data-key="point">积分</th>
                                 <th class="sortable" data-key="spec">规格</th>
-                                <th>状态</th>
+                                <th class="sortable" data-key="creatable">状态</th>
                             </tr>
                         </thead>
                         <tbody id="configBody"></tbody>
@@ -920,7 +944,7 @@
                                 <th class="sortable" data-key="traffic">流量</th>
                                 <th class="sortable" data-key="point">积分</th>
                                 <th class="sortable" data-key="spec">规格</th>
-                                <th>状态</th>
+                                <th class="sortable" data-key="creatable">状态</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -931,11 +955,13 @@
                     <p>当前选中配置：<span id="selectedConfigName" class="text-bold-primary">--</span></p>
 
                     <!-- Create Mode Toggle -->
-                    <div class="create-mode-toggle">
-                        <label><input type="radio" name="createMode" value="single" checked
-                                onchange="simpCreateApp.toggleCreateUI()"> 单次创建</label>
-                        <label><input type="radio" name="createMode" value="loop"
-                                onchange="simpCreateApp.toggleCreateUI()"> 循环创建 (自动重复)</label>
+                    <div id="createModeToggleArea" class="mode-switch-container">
+                        <span id="createSingleLabel" class="mode-label active">单次创建</span>
+                        <label class="switch">
+                            <input type="checkbox" id="createModeSwitch" onchange="simpCreateApp.toggleCreateUI()">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="createLoopLabel" class="mode-label">循环创建</span>
                     </div>
 
                     <!-- Single Create UI -->
@@ -979,11 +1005,12 @@
                         <thead>
                             <tr>
                                 <th class="sortable" data-key="id">实例ID</th>
-                                <th class="sortable" data-key="shop_id">配置ID</th>
+                                <th class="sortable" data-key="status">状态</th>
                                 <th class="sortable" data-key="area_grade">当前实例类型</th>
                                 <th class="sortable" data-key="cpu">CPU核心</th>
                                 <th class="sortable" data-key="ram">内存</th>
                                 <th class="sortable" data-key="disk">磁盘</th>
+                                <th class="sortable" data-key="port">端口</th>
                                 <th class="sortable" data-key="traffic">剩余流量/总流量</th>
                                 <th class="sortable" data-key="point">积分</th>
                             </tr>
@@ -992,11 +1019,12 @@
                         <tfoot>
                             <tr>
                                 <th class="sortable" data-key="id">实例ID</th>
-                                <th class="sortable" data-key="shop_id">配置ID</th>
+                                <th class="sortable" data-key="status">状态</th>
                                 <th class="sortable" data-key="area_grade">当前实例类型</th>
                                 <th class="sortable" data-key="cpu">CPU核心</th>
                                 <th class="sortable" data-key="ram">内存</th>
                                 <th class="sortable" data-key="disk">磁盘</th>
+                                <th class="sortable" data-key="port">端口</th>
                                 <th class="sortable" data-key="traffic">剩余流量/总流量</th>
                                 <th class="sortable" data-key="point">积分</th>
                             </tr>
@@ -1013,68 +1041,71 @@
 
                         <!-- Power Section -->
                         <div class="control-section u-mt-10">
-                            <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">开机</h4>
-                            <div id="powerModeToggle" class="create-mode-toggle"
-                                style="margin-bottom: 10px; margin-top: 5px;">
-                                <label><input type="radio" name="powerMode" value="single" checked
-                                        onchange="simpCreateApp.togglePowerUI()"> 单次开机</label>
-                                <label><input type="radio" name="powerMode" value="loop"
-                                        onchange="simpCreateApp.togglePowerUI()"> 循环开机</label>
+                            <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">电源管理</h4>
+                            <div class="mode-switch-container" style="margin: 10px 0;">
+                                <span id="powerSingleLabel" class="mode-label active">单次开机</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="powerModeSwitch"
+                                        onchange="simpCreateApp.togglePowerUI()">
+                                    <span class="slider"></span>
+                                </label>
+                                <span id="powerLoopLabel" class="mode-label">循环开机</span>
                             </div>
+                        </div>
 
-                            <div id="singlePowerUI">
-                                <button id="startInstanceBtn" class="main-action-btn success"
-                                    style="margin-top: 0; padding: 10px 30px;">立即开机</button>
-                            </div>
+                        <div id="singlePowerUI">
+                            <button id="startInstanceBtn" class="main-action-btn success"
+                                style="margin-top: 0; padding: 10px 30px;">立即开机</button>
+                        </div>
 
-                            <div id="loopPowerUI" class="hidden">
-                                <div class="u-my-10">
-                                    <label for="powerIntervalInput" style="font-size: 14px;">间隔(秒): </label>
-                                    <input type="number" id="powerIntervalInput" value="30" min="10" class="input-xs">
-                                    <button id="autoStartBtn" class="danger"
-                                        style="padding: 8px 20px; font-size: 14px; margin-left: 10px;">开始循环开机</button>
-                                </div>
-                                <div id="powerProgressContainer" class="progress-bar-container"
-                                    style="margin-top: 5px;">
-                                    <div id="powerProgressBar" class="progress-bar"></div>
-                                </div>
-                                <p id="powerRepeatCount" class="text-small-gray u-mt-0">已发送请求: 0 次</p>
+                        <div id="loopPowerUI" class="hidden">
+                            <div class="u-my-10">
+                                <label for="powerIntervalInput" style="font-size: 14px;">间隔(秒): </label>
+                                <input type="number" id="powerIntervalInput" value="30" min="10" class="input-xs">
+                                <button id="autoStartBtn" class="danger"
+                                    style="padding: 8px 20px; font-size: 14px; margin-left: 10px;">开始循环开机</button>
                             </div>
+                            <div id="powerProgressContainer" class="progress-bar-container" style="margin-top: 5px;">
+                                <div id="powerProgressBar" class="progress-bar"></div>
+                            </div>
+                            <p id="powerRepeatCount" class="text-small-gray u-mt-0">已发送请求: 0 次</p>
                         </div>
                     </div>
 
                     <!-- Reconfig Section -->
                     <div class="control-section">
-                        <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">变配</h4>
+                        <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">规格变配</h4>
                         <p>目标配置：<span id="targetConfigName" class="text-bold-primary">--</span> (请在列表选择)</p>
 
-                        <div id="reconfigModeToggle" class="create-mode-toggle"
-                            style="margin-bottom: 10px; margin-top: 5px;">
-                            <label><input type="radio" name="reconfigMode" value="single" checked
-                                    onchange="simpCreateApp.toggleReconfigUI()"> 单次变配</label>
-                            <label><input type="radio" name="reconfigMode" value="loop"
-                                    onchange="simpCreateApp.toggleReconfigUI()"> 循环变配</label>
+                        <div id="reconfigModeToggleArea" class="mode-switch-container" style="margin: 10px 0;">
+                            <span id="reconfigSingleLabel" class="mode-label active">单次变配</span>
+                            <label class="switch">
+                                <input type="checkbox" id="reconfigModeSwitch"
+                                    onchange="simpCreateApp.toggleReconfigUI()">
+                                <span class="slider"></span>
+                            </label>
+                            <span id="reconfigLoopLabel" class="mode-label">循环变配</span>
                         </div>
+                    </div>
 
-                        <div id="singleReconfigUI">
-                            <button id="reconfigureBtn" class="main-action-btn"
-                                style="margin-top: 0; padding: 10px 30px;">执行变配</button>
-                        </div>
+                    <div id="singleReconfigUI">
+                        <button id="reconfigureBtn" class="main-action-btn"
+                            style="margin-top: 0; padding: 10px 30px;">执行变配</button>
+                    </div>
 
-                        <div id="loopReconfigUI" class="hidden">
-                            <p id="loopReconfigMsg" class="text-warning hidden" style="font-size: 13px; margin: 5px 0;">
-                                该配置缺货，已设为循环模式</p>
-                            <div class="u-my-10">
-                                <label for="instanceIntervalInput" style="font-size: 14px;">间隔(秒): </label>
-                                <input type="number" id="instanceIntervalInput" value="30" min="10" class="input-xs">
-                                <button id="autoReconfigureBtn" class="danger"
-                                    style="padding: 8px 20px; font-size: 14px; margin-left: 10px;">开始循环变配</button>
-                            </div>
-                            <div id="reconfigProgressContainer" class="progress-bar-container" style="margin-top: 5px;">
-                                <div id="reconfigProgressBar" class="progress-bar"></div>
-                            </div>
-                            <p id="reconfigRepeatCount" class="text-small-gray u-mt-0">已发送请求: 0 次</p>
+                    <div id="loopReconfigUI" class="hidden">
+                        <p id="loopReconfigMsg" class="text-warning hidden" style="font-size: 13px; margin: 5px 0;">
+                            该配置不可创建，已自动切换为循环模式</p>
+                        <div class="u-my-10">
+                            <label for="instanceIntervalInput" style="font-size: 14px;">间隔(秒): </label>
+                            <input type="number" id="instanceIntervalInput" value="30" min="10" class="input-xs">
+                            <button id="autoReconfigureBtn" class="danger"
+                                style="padding: 8px 20px; font-size: 14px; margin-left: 10px;">开始循环变配</button>
                         </div>
+                        <div id="reconfigProgressContainer" class="progress-bar-container" style="margin-top: 5px;">
+                            <div id="reconfigProgressBar" class="progress-bar"></div>
+                        </div>
+                        <p id="reconfigRepeatCount" class="text-small-gray u-mt-0">已发送请求: 0 次</p>
                     </div>
                 </div>
             </section>
@@ -1085,7 +1116,8 @@
         <footer class="footer">
             <p>使用此工具产生的任何后果由使用者自行承担。</p>
             <a href="https://github.com/zhazha7hao/simpcreate" target="_blank" rel="noopener"
-                class="link-inherit">GitHub Project</a>
+                class="link-inherit">GitHub
+                Project</a>
         </footer>
     </div>
 
@@ -1177,9 +1209,12 @@
                     'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName',
                     'currentInstanceSpec',
                     'targetConfigName', 'reconfigureBtn', 'startInstanceBtn',
-                    'reconfigModeToggle', 'singleReconfigUI', 'loopReconfigUI', 'loopReconfigMsg',
+                    'createModeSwitch', 'createSingleLabel', 'createLoopLabel', 'createModeToggleArea',
+                    'reconfigModeSwitch', 'reconfigSingleLabel', 'reconfigLoopLabel', 'reconfigModeToggleArea',
+                    'powerModeSwitch', 'powerSingleLabel', 'powerLoopLabel',
+                    'singleReconfigUI', 'loopReconfigUI', 'loopReconfigMsg',
                     'autoReconfigureBtn', 'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'reconfigRepeatCount',
-                    'powerModeToggle', 'singlePowerUI', 'loopPowerUI', 'powerIntervalInput', 'autoStartBtn',
+                    'singlePowerUI', 'loopPowerUI', 'powerIntervalInput', 'autoStartBtn',
                     'powerProgressContainer', 'powerProgressBar', 'powerRepeatCount',
                     'userInfo',
                     'sortModeToggle', 'sortModeToggleInst', 'singleSortLabel', 'dualSortLabel',
@@ -1327,6 +1362,19 @@
                     return this.config.SPEC_ORDER.indexOf(val);
                 }
 
+                if (key === 'creatable') {
+                    return val ? 1 : 0;
+                }
+
+                if (key === 'port') {
+                    return item.default_allocation ? item.default_allocation.port : 0;
+                }
+
+                if (key === 'status') {
+                    const statusMap = { 'running': 3, 'starting': 2, 'offline': 1 };
+                    return statusMap[val] || 0;
+                }
+
                 const num = parseFloat(val);
                 return isNaN(num) ? String(val).toLowerCase() : num;
             },
@@ -1356,28 +1404,33 @@
             },
 
             toggleCreateUI() {
-                const isLoop = document.querySelector('input[name="createMode"]:checked').value === 'loop';
+                const isLoop = this.elements.createModeSwitch.checked;
                 if (isLoop) {
                     this.elements.singleCreateUI.classList.add('hidden');
                     this.elements.loopCreateUI.classList.remove('hidden');
+                    this.elements.createSingleLabel.classList.remove('active');
+                    this.elements.createLoopLabel.classList.add('active');
                 } else {
                     this.elements.singleCreateUI.classList.remove('hidden');
                     this.elements.loopCreateUI.classList.add('hidden');
+                    this.elements.createSingleLabel.classList.add('active');
+                    this.elements.createLoopLabel.classList.remove('active');
                     if (this.state.createIntervalId) this.stopAutoCreate();
                 }
             },
 
             toggleReconfigUI() {
-                const isLoop = document.querySelector('input[name="reconfigMode"]:checked').value === 'loop';
+                const isLoop = this.elements.reconfigModeSwitch.checked;
                 if (isLoop) {
                     this.elements.singleReconfigUI.classList.add('hidden');
                     this.elements.loopReconfigUI.classList.remove('hidden');
+                    this.elements.reconfigSingleLabel.classList.remove('active');
+                    this.elements.reconfigLoopLabel.classList.add('active');
                 } else {
                     this.elements.singleReconfigUI.classList.remove('hidden');
                     this.elements.loopReconfigUI.classList.add('hidden');
-                    // Hide the "Not purchasable" message when manually switching back, unless forced?
-                    // Actually if it's forced loop, the user shouldn't be able to switch back ideally,
-                    // but for now we trust the logic in updateReconfigControls to handle the initial state.
+                    this.elements.reconfigSingleLabel.classList.add('active');
+                    this.elements.reconfigLoopLabel.classList.remove('active');
                     this.elements.loopReconfigMsg.classList.add('hidden');
 
                     if (this.state.reconfigIntervalId) this.stopAutoReconfig();
@@ -1385,13 +1438,17 @@
             },
 
             togglePowerUI() {
-                const isLoop = document.querySelector('input[name="powerMode"]:checked').value === 'loop';
+                const isLoop = this.elements.powerModeSwitch.checked;
                 if (isLoop) {
                     this.elements.singlePowerUI.classList.add('hidden');
                     this.elements.loopPowerUI.classList.remove('hidden');
+                    this.elements.powerSingleLabel.classList.remove('active');
+                    this.elements.powerLoopLabel.classList.add('active');
                 } else {
                     this.elements.singlePowerUI.classList.remove('hidden');
                     this.elements.loopPowerUI.classList.add('hidden');
+                    this.elements.powerSingleLabel.classList.add('active');
+                    this.elements.powerLoopLabel.classList.remove('active');
                     if (this.state.powerIntervalId) this.stopAutoPower();
                 }
             },
@@ -1509,7 +1566,7 @@
                 <td>${cfg.traffic}GB</td>
                 <td>${cfg.point}</td>
                 <td>${cfg.spec}</td>
-                <td><span class="status-tag ${cfg.creatable ? 'status-yes' : 'status-no'}">${cfg.creatable ? '可创建' : '缺货'}</span></td>
+                <td><span class="status-tag ${cfg.creatable ? 'status-yes' : 'status-no'}">${cfg.creatable ? '可创建' : '不可创建'}</span></td>
             `;
 
                     tr.addEventListener('click', () => this.selectConfig(cfg));
@@ -1544,17 +1601,25 @@
                         trafficInfo = `${ins.traffic_plan}GB`;
                     }
 
-                    tr.innerHTML = `
-                <td>${ins.id}</td>
-                <td>${ins.shop_id || '-'}</td>
-                <td>${ins.area_grade || '-'}</td>
-                <td>${ins.cpu}核</td>
-                <td>${ins.ram}GB</td>
-                <td>${ins.disk}GB</td>
-                <td>${trafficInfo}</td>
-                <td>${ins.point}</td>
-            `;
+                    const statusMap = {
+                        'running': { text: '运行中', class: 'status-yes' },
+                        'starting': { text: '启动中', class: 'status-warning' },
+                        'offline': { text: '离线', class: 'status-no' }
+                    };
+                    const status = statusMap[ins.status] || { text: ins.status, class: '' };
+                    const port = ins.default_allocation ? ins.default_allocation.port : '-';
 
+                    tr.innerHTML = `
+    <td>${ins.id}</td>
+    <td><span class="status-tag ${status.class}">${status.text}</span></td>
+    <td>${ins.area_grade || '-'}</td>
+    <td>${ins.cpu}核</td>
+    <td>${ins.ram}GB</td>
+    <td>${ins.disk}GB</td>
+    <td>${port}</td>
+    <td>${trafficInfo}</td>
+    <td>${ins.point}</td>
+`;
                     tr.addEventListener('click', () => this.selectInstance(ins, tr));
                     fragment.appendChild(tr);
                 });
@@ -1572,14 +1637,13 @@
                 this.elements.createActionArea.classList.remove('hidden');
 
                 // Logic to disable loop create if config is creatable
-                const modeToggleEl = document.querySelector('.create-mode-toggle');
                 if (cfg.creatable) {
                     // Force single mode
-                    document.querySelector('input[name="createMode"][value="single"]').checked = true;
+                    this.elements.createModeSwitch.checked = false;
                     this.toggleCreateUI();
-                    modeToggleEl.classList.add('hidden');
+                    this.elements.createModeToggleArea.classList.add('hidden');
                 } else {
-                    modeToggleEl.classList.remove('hidden');
+                    this.elements.createModeToggleArea.classList.remove('hidden');
                 }
 
                 if (this.state.isInstanceMode && this.state.selectedInstanceId) {
@@ -1608,7 +1672,7 @@
                     this.updateReconfigControls(this.state.selectedConfig);
                 } else {
                     this.elements.targetConfigName.textContent = "请先在上方创建列表中点击选择一个目标配置";
-                    this.elements.reconfigModeToggle.classList.add('hidden');
+                    this.elements.reconfigModeToggleArea.classList.add('hidden');
                     this.elements.singleReconfigUI.classList.add('hidden');
                     this.elements.loopReconfigUI.classList.add('hidden');
                 }
@@ -1618,15 +1682,15 @@
                 this.elements.targetConfigName.textContent = `${targetCfg.area_grade} / ${targetCfg.spec} (${targetCfg.cpu}C/${targetCfg.ram}G)`;
 
                 if (targetCfg.creatable) {
-                    // Config is available: allow both modes, default to single
-                    this.elements.reconfigModeToggle.classList.remove('hidden');
-                    document.querySelector('input[name="reconfigMode"][value="single"]').checked = true;
+                    // Config is available: allow both modes, default to single, but hide toggle per request
+                    this.elements.reconfigModeSwitch.checked = false;
+                    this.elements.reconfigModeToggleArea.classList.add('hidden');
                     this.elements.loopReconfigMsg.classList.add('hidden');
                     this.toggleReconfigUI();
                 } else {
-                    // Config is NOT available: force loop mode
-                    this.elements.reconfigModeToggle.classList.add('hidden');
-                    document.querySelector('input[name="reconfigMode"][value="loop"]').checked = true;
+                    // Config is NOT available: force loop mode and show toggle (to indicate why it's looping)
+                    this.elements.reconfigModeToggleArea.classList.remove('hidden');
+                    this.elements.reconfigModeSwitch.checked = true;
                     this.elements.loopReconfigMsg.classList.remove('hidden');
                     this.toggleReconfigUI();
                 }
