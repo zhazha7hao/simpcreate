@@ -38,7 +38,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1480px;
             margin: 0 auto;
         }
 
@@ -923,6 +923,8 @@
                                 <th class="sortable" data-key="id">ID</th>
                                 <th class="sortable" data-key="area_grade">CPU等级</th>
                                 <th class="sortable" data-key="area_vendor">供应商</th>
+                                <th class="sortable" data-key="cpu_model">处理器型号</th>
+                                <th class="sortable" data-key="cpuz">CPU-Z跑分</th>
                                 <th class="sortable" data-key="cpu">CPU核心</th>
                                 <th class="sortable" data-key="ram">内存</th>
                                 <th class="sortable" data-key="disk">磁盘</th>
@@ -938,6 +940,8 @@
                                 <th class="sortable" data-key="id">ID</th>
                                 <th class="sortable" data-key="area_grade">CPU等级</th>
                                 <th class="sortable" data-key="area_vendor">供应商</th>
+                                <th class="sortable" data-key="cpu_model">处理器型号</th>
+                                <th class="sortable" data-key="cpuz">CPU-Z跑分</th>
                                 <th class="sortable" data-key="cpu">CPU核心</th>
                                 <th class="sortable" data-key="ram">内存</th>
                                 <th class="sortable" data-key="disk">磁盘</th>
@@ -1157,7 +1161,24 @@
                 API_BASE: 'https://api.simpfun.cn/api',
                 GRADE_ORDER: ["C+", "C++", "B-", "B", "B+", "B++", "A", "S-", "S", "S+"],
                 SPEC_ORDER: ["M", "M+", "L", "L+", "XL", "2XL", "3XL"],
-                MIN_INTERVAL: 10
+                MIN_INTERVAL: 10,
+                CPU_INFO: {
+                    'I': {
+                        'C+': { model: 'E5-2682v4', score: 330 },
+                        'B-': { model: 'E5-2690v4,铂金8175M,金牌6148', score: 365 },
+                        'B+': { model: '铂金8368(ES6)', score: 440 },
+                        'B++': { model: '铂金8368Q', score: 485 },
+                        'A': { model: '铂金8470Q', score: 550 },
+                        'S': { model: 'U7-265K', score: 900 },
+                        'S+': { model: 'U7-265K OC+调优', score: 920 }
+                    },
+                    'A': {
+                        'B+': { model: 'EPYC 7C13/7B13/7713', score: 435 },
+                        'B++': { model: 'EPYC 7Y43/7T83/7K83', score: 470 },
+                        'S': { model: 'R9-9950X', score: 850 },
+                        'S+': { model: 'R9-9950X OC+调优', score: 920 }
+                    }
+                }
             },
             state: {
                 token: null,
@@ -1335,11 +1356,11 @@
                     const key = th.dataset.key;
 
                     if (key === this.state.primarySortKey) {
-                        const arrow = this.state.primarySortAsc ? '▼' : '▲';
+                        const arrow = this.state.primarySortAsc ? '▲' : '▼';
                         th.innerHTML += ` <span class="sort-icon primary">${arrow}</span>`;
                     }
                     else if (this.state.isDualSort && key === this.state.secondarySortKey) {
-                        const arrow = this.state.secondarySortAsc ? '▼' : '▲';
+                        const arrow = this.state.secondarySortAsc ? '▲' : '▼';
                         th.innerHTML += ` <span class="sort-icon secondary">${arrow}</span>`;
                     }
                 });
@@ -1506,7 +1527,18 @@
 
             async loadConfigs() {
                 const data = await this.apiFetch(`/shop/list?version_id=${this.config.VERSION_ID}`);
-                this.state.cachedConfigs = data.list;
+
+                const processedList = data.list.map(cfg => {
+                    let model = '-';
+                    let score = 0;
+                    if (this.config.CPU_INFO[cfg.area_vendor] && this.config.CPU_INFO[cfg.area_vendor][cfg.area_grade]) {
+                        model = this.config.CPU_INFO[cfg.area_vendor][cfg.area_grade].model;
+                        score = this.config.CPU_INFO[cfg.area_vendor][cfg.area_grade].score;
+                    }
+                    return { ...cfg, cpu_model: model, cpuz: score };
+                });
+
+                this.state.cachedConfigs = processedList;
                 this.renderConfigs();
             },
 
@@ -1560,6 +1592,13 @@
                 <td>${cfg.id}</td>
                 <td>${cfg.area_grade}</td>
                 <td>${cfg.area_vendor}</td>
+                <td><span style="font-size: 14px; color: var(--text-main); font-weight: 500; white-space: nowrap;">${cfg.cpu_model}</span></td>
+                <td>
+                    <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 14px; text-align: center; min-width: 45px;
+                        ${cfg.cpuz > 0 ? (cfg.cpuz >= 800 ? 'background: #e3f2fd; color: #1976d2;' : (cfg.cpuz >= 400 ? 'background: #e8f5e9; color: #2e7d32;' : 'background: #f5f5f5; color: #666;')) : 'color: #999;'}">
+                        ${cfg.cpuz > 0 ? cfg.cpuz : '-'}
+                    </span>
+                </td>
                 <td>${cfg.cpu}</td>
                 <td>${cfg.ram}GB</td>
                 <td>${cfg.disk}GB</td>
