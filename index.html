@@ -1017,6 +1017,7 @@
                                 <th class="sortable" data-key="port">端口</th>
                                 <th class="sortable" data-key="traffic">剩余流量/总流量</th>
                                 <th class="sortable" data-key="point">积分</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="instancesBody"></tbody>
@@ -1031,6 +1032,7 @@
                                 <th class="sortable" data-key="port">端口</th>
                                 <th class="sortable" data-key="traffic">剩余流量/总流量</th>
                                 <th class="sortable" data-key="point">积分</th>
+                                <th>操作</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -1622,7 +1624,7 @@
                 const fragment = document.createDocumentFragment();
 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">暂无实例</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:30px;">暂无实例</td></tr>';
                     this.elements.reconfigActionArea.classList.add('hidden');
                     return;
                 }
@@ -1658,6 +1660,9 @@
     <td>${port}</td>
     <td>${trafficInfo}</td>
     <td>${ins.point}</td>
+    <td>
+        <button onclick="event.stopPropagation(); window.open('https://simpfun.cn/console/ins/${ins.id}/', '_blank')" style="padding: 5px 12px; font-size: 12px; margin: 0;">控制台</button>
+    </td>
 `;
                     tr.addEventListener('click', () => this.selectInstance(ins, tr));
                     fragment.appendChild(tr);
