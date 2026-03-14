@@ -833,7 +833,93 @@
             height: 40px;
             border-width: 4px;
         }
+
+        .sub-mode-switch {
+            display: flex;
+            justify-content: center;
+            background: #e0e0e0;
+            border-radius: 8px;
+            padding: 4px;
+            width: fit-content;
+            margin: 15px auto;
+        }
+
+        .sub-mode-btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-sec);
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .sub-mode-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-queue-wrapper {
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .config-queue {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .config-queue li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-queue li:last-child {
+            border-bottom: none;
+        }
+
+        .config-queue-info {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .config-queue-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .config-queue-actions button:hover {
+            background: #f0f0f0;
+        }
+
+        .config-queue-actions button.del-btn {
+            color: var(--error);
+            border-color: #ffcdd2;
+        }
+
+        .config-queue-actions button.del-btn:hover {
+            background: #ffebee;
+        }
     </style>
+
 </head>
 
 <body>
@@ -959,13 +1045,10 @@
                     <p>当前选中配置：<span id="selectedConfigName" class="text-bold-primary">--</span></p>
 
                     <!-- Create Mode Toggle -->
-                    <div id="createModeToggleArea" class="mode-switch-container">
-                        <span id="createSingleLabel" class="mode-label active">单次创建</span>
-                        <label class="switch">
-                            <input type="checkbox" id="createModeSwitch" onchange="simpCreateApp.toggleCreateUI()">
-                            <span class="slider"></span>
-                        </label>
-                        <span id="createLoopLabel" class="mode-label">循环创建</span>
+                    <div id="createModeToggleArea" class="sub-mode-switch">
+                        <button class="sub-mode-btn active" data-type="create" data-mode="single">单次创建</button>
+                        <button class="sub-mode-btn" data-type="create" data-mode="loop">循环创建</button>
+                        <button class="sub-mode-btn" data-type="create" data-mode="multi">多配置</button>
                     </div>
 
                     <!-- Single Create UI -->
@@ -986,6 +1069,25 @@
                             <div id="createProgressBar" class="progress-bar"></div>
                         </div>
                         <p id="repeatCount" class="text-bold-mt">已发送请求: 0 次</p>
+                    </div>
+
+                    <!-- Multi Create UI -->
+                    <div id="multiCreateUI" class="hidden">
+                        <p class="text-warning" style="font-size: 13px;">多配置尝试：请在上方表中点击【不可创建】配置来构建队列，抢占时优先级由上至下。</p>
+                        <div class="config-queue-wrapper">
+                            <ul id="multiCreateQueue" class="config-queue"></ul>
+                            <p id="multiCreateEmptyMsg" class="text-small-gray"
+                                style="text-align: center; margin: 10px;">队伍为空，请点击上方表格添加</p>
+                        </div>
+                        <div class="u-my-15">
+                            <label for="multiCreateIntervalInput">请求轮询间隔(秒): </label>
+                            <input type="number" id="multiCreateIntervalInput" value="30" min="10" class="input-xs">
+                        </div>
+                        <button id="autoMultiCreateBtn" class="main-action-btn danger">开始多配置</button>
+                        <div id="multiCreateProgressContainer" class="progress-bar-container">
+                            <div id="multiCreateProgressBar" class="progress-bar"></div>
+                        </div>
+                        <p id="multiCreateRepeatCount" class="text-bold-mt">已尝试轮数: 0 次</p>
                     </div>
                 </div>
             </section>
@@ -1048,14 +1150,9 @@
                         <!-- Power Section -->
                         <div class="control-section u-mt-10">
                             <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">电源管理</h4>
-                            <div class="mode-switch-container" style="margin: 10px 0;">
-                                <span id="powerSingleLabel" class="mode-label active">单次开机</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="powerModeSwitch"
-                                        onchange="simpCreateApp.togglePowerUI()">
-                                    <span class="slider"></span>
-                                </label>
-                                <span id="powerLoopLabel" class="mode-label">循环开机</span>
+                            <div id="powerModeToggleArea" class="sub-mode-switch" style="margin: 10px 0;">
+                                <button class="sub-mode-btn active" data-type="power" data-mode="single">单次开机</button>
+                                <button class="sub-mode-btn" data-type="power" data-mode="loop">循环开机</button>
                             </div>
                         </div>
 
@@ -1083,14 +1180,10 @@
                         <h4 class="u-m-0" style="font-size: 0.9rem; color: #666;">规格变配</h4>
                         <p>目标配置：<span id="targetConfigName" class="text-bold-primary">--</span> (请在列表选择)</p>
 
-                        <div id="reconfigModeToggleArea" class="mode-switch-container" style="margin: 10px 0;">
-                            <span id="reconfigSingleLabel" class="mode-label active">单次变配</span>
-                            <label class="switch">
-                                <input type="checkbox" id="reconfigModeSwitch"
-                                    onchange="simpCreateApp.toggleReconfigUI()">
-                                <span class="slider"></span>
-                            </label>
-                            <span id="reconfigLoopLabel" class="mode-label">循环变配</span>
+                        <div id="reconfigModeToggleArea" class="sub-mode-switch" style="margin: 10px 0;">
+                            <button class="sub-mode-btn active" data-type="reconfig" data-mode="single">单次变配</button>
+                            <button class="sub-mode-btn" data-type="reconfig" data-mode="loop">循环变配</button>
+                            <button class="sub-mode-btn" data-type="reconfig" data-mode="multi">多配置</button>
                         </div>
                     </div>
 
@@ -1101,7 +1194,7 @@
 
                     <div id="loopReconfigUI" class="hidden">
                         <p id="loopReconfigMsg" class="text-warning hidden" style="font-size: 13px; margin: 5px 0;">
-                            该配置不可创建，已自动切换为循环模式</p>
+                            目标配置不可创建，请使用循环或多配置模式</p>
                         <div class="u-my-10">
                             <label for="instanceIntervalInput" style="font-size: 14px;">间隔(秒): </label>
                             <input type="number" id="instanceIntervalInput" value="30" min="10" class="input-xs">
@@ -1112,6 +1205,26 @@
                             <div id="reconfigProgressBar" class="progress-bar"></div>
                         </div>
                         <p id="reconfigRepeatCount" class="text-small-gray u-mt-0">已发送请求: 0 次</p>
+                    </div>
+
+                    <div id="multiReconfigUI" class="hidden">
+                        <p class="text-warning" style="font-size: 13px;">多配置尝试：请在上方表中点击【不可创建】配置来构建队列，抢占时优先级由上至下。</p>
+                        <div class="config-queue-wrapper">
+                            <ul id="multiReconfigQueue" class="config-queue"></ul>
+                            <p id="multiReconfigEmptyMsg" class="text-small-gray"
+                                style="text-align: center; margin: 10px;">队伍为空，请点击上方表格添加</p>
+                        </div>
+                        <div class="u-my-15">
+                            <label for="multiReconfigIntervalInput">请求轮询间隔(秒): </label>
+                            <input type="number" id="multiReconfigIntervalInput" value="30" min="10" class="input-xs">
+                            <button id="autoMultiReconfigBtn" class="danger"
+                                style="padding: 8px 20px; font-size: 14px; margin-left: 10px;">开始多配置</button>
+                        </div>
+                        <div id="multiReconfigProgressContainer" class="progress-bar-container"
+                            style="margin-top: 5px;">
+                            <div id="multiReconfigProgressBar" class="progress-bar"></div>
+                        </div>
+                        <p id="multiReconfigRepeatCount" class="text-small-gray u-mt-0">已尝试轮数: 0 次</p>
                     </div>
                 </div>
             </section>
@@ -1196,9 +1309,18 @@
                 createIntervalId: null,
                 reconfigIntervalId: null,
                 powerIntervalId: null,
+                multiCreateIntervalId: null,
+                multiReconfigIntervalId: null,
                 createRepeatCount: 0,
                 reconfigRepeatCount: 0,
                 powerRepeatCount: 0,
+                multiCreateCount: 0,
+                multiReconfigCount: 0,
+                createMode: 'single',
+                reconfigMode: 'single',
+                powerMode: 'single',
+                multiCreateQueue: [],
+                multiReconfigQueue: [],
                 isLoadingDetail: false,
                 cachedConfigs: []
             },
@@ -1232,9 +1354,9 @@
                     'instancesTable', 'instancesBody', 'reconfigActionArea', 'selectedInstanceName',
                     'currentInstanceSpec',
                     'targetConfigName', 'reconfigureBtn', 'startInstanceBtn',
-                    'createModeSwitch', 'createSingleLabel', 'createLoopLabel', 'createModeToggleArea',
-                    'reconfigModeSwitch', 'reconfigSingleLabel', 'reconfigLoopLabel', 'reconfigModeToggleArea',
-                    'powerModeSwitch', 'powerSingleLabel', 'powerLoopLabel',
+                    'createModeToggleArea', 'reconfigModeToggleArea', 'powerModeToggleArea',
+                    'multiCreateUI', 'multiCreateQueue', 'multiCreateEmptyMsg', 'multiCreateIntervalInput', 'autoMultiCreateBtn', 'multiCreateProgressContainer', 'multiCreateProgressBar', 'multiCreateRepeatCount',
+                    'multiReconfigUI', 'multiReconfigQueue', 'multiReconfigEmptyMsg', 'multiReconfigIntervalInput', 'autoMultiReconfigBtn', 'multiReconfigProgressContainer', 'multiReconfigProgressBar', 'multiReconfigRepeatCount',
                     'singleReconfigUI', 'loopReconfigUI', 'loopReconfigMsg',
                     'autoReconfigureBtn', 'instanceIntervalInput', 'reconfigProgressContainer', 'reconfigProgressBar', 'reconfigRepeatCount',
                     'singlePowerUI', 'loopPowerUI', 'powerIntervalInput', 'autoStartBtn',
@@ -1268,6 +1390,16 @@
                 this.elements.startInstanceBtn.addEventListener('click', () => this.startInstance(false));
                 this.elements.autoReconfigureBtn.addEventListener('click', () => this.toggleAutoReconfig());
                 this.elements.autoStartBtn.addEventListener('click', () => this.toggleAutoPower());
+                this.elements.autoMultiCreateBtn.addEventListener('click', () => this.toggleMultiTask('create'));
+                this.elements.autoMultiReconfigBtn.addEventListener('click', () => this.toggleMultiTask('reconfig'));
+
+                document.querySelectorAll('.sub-mode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const type = e.target.dataset.type;
+                        const mode = e.target.dataset.mode;
+                        this.setMode(type, mode);
+                    });
+                });
 
                 document.addEventListener('click', (e) => {
                     const th = e.target.closest('th.sortable');
@@ -1426,53 +1558,40 @@
                 return this.state.cachedInstances || [];
             },
 
-            toggleCreateUI() {
-                const isLoop = this.elements.createModeSwitch.checked;
-                if (isLoop) {
-                    this.elements.singleCreateUI.classList.add('hidden');
-                    this.elements.loopCreateUI.classList.remove('hidden');
-                    this.elements.createSingleLabel.classList.remove('active');
-                    this.elements.createLoopLabel.classList.add('active');
-                } else {
-                    this.elements.singleCreateUI.classList.remove('hidden');
-                    this.elements.loopCreateUI.classList.add('hidden');
-                    this.elements.createSingleLabel.classList.add('active');
-                    this.elements.createLoopLabel.classList.remove('active');
-                    if (this.state.createIntervalId) this.stopAutoCreate();
+            setMode(type, mode) {
+                this.state[type + 'Mode'] = mode;
+
+                // Update UI Buttons
+                const container = this.elements[type + 'ModeToggleArea'];
+                if (container) {
+                    container.querySelectorAll('.sub-mode-btn').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.mode === mode);
+                    });
                 }
-            },
 
-            toggleReconfigUI() {
-                const isLoop = this.elements.reconfigModeSwitch.checked;
-                if (isLoop) {
-                    this.elements.singleReconfigUI.classList.add('hidden');
-                    this.elements.loopReconfigUI.classList.remove('hidden');
-                    this.elements.reconfigSingleLabel.classList.remove('active');
-                    this.elements.reconfigLoopLabel.classList.add('active');
-                } else {
-                    this.elements.singleReconfigUI.classList.remove('hidden');
-                    this.elements.loopReconfigUI.classList.add('hidden');
-                    this.elements.reconfigSingleLabel.classList.add('active');
-                    this.elements.reconfigLoopLabel.classList.remove('active');
-                    this.elements.loopReconfigMsg.classList.add('hidden');
+                // Hide all panels for this type
+                const singleUI = this.elements['single' + type.charAt(0).toUpperCase() + type.slice(1) + 'UI'];
+                const loopUI = this.elements['loop' + type.charAt(0).toUpperCase() + type.slice(1) + 'UI'];
+                const multiUI = this.elements['multi' + type.charAt(0).toUpperCase() + type.slice(1) + 'UI'];
 
-                    if (this.state.reconfigIntervalId) this.stopAutoReconfig();
-                }
-            },
+                if (singleUI) singleUI.classList.add('hidden');
+                if (loopUI) loopUI.classList.add('hidden');
+                if (multiUI) multiUI.classList.add('hidden');
 
-            togglePowerUI() {
-                const isLoop = this.elements.powerModeSwitch.checked;
-                if (isLoop) {
-                    this.elements.singlePowerUI.classList.add('hidden');
-                    this.elements.loopPowerUI.classList.remove('hidden');
-                    this.elements.powerSingleLabel.classList.remove('active');
-                    this.elements.powerLoopLabel.classList.add('active');
-                } else {
-                    this.elements.singlePowerUI.classList.remove('hidden');
-                    this.elements.loopPowerUI.classList.add('hidden');
-                    this.elements.powerSingleLabel.classList.add('active');
-                    this.elements.powerLoopLabel.classList.remove('active');
-                    if (this.state.powerIntervalId) this.stopAutoPower();
+                // Show selected panel
+                if (mode === 'single' && singleUI) singleUI.classList.remove('hidden');
+                if (mode === 'loop' && loopUI) loopUI.classList.remove('hidden');
+                if (mode === 'multi' && multiUI) multiUI.classList.remove('hidden');
+
+                // Stop active intervals if switching away from them
+                if (type === 'create') {
+                    if (mode !== 'loop' && this.state.createIntervalId) this.stopAutoCreate();
+                    if (mode !== 'multi' && this.state.multiCreateIntervalId) this.stopMultiTask('create');
+                } else if (type === 'reconfig') {
+                    if (mode !== 'loop' && this.state.reconfigIntervalId) this.stopAutoReconfig();
+                    if (mode !== 'multi' && this.state.multiReconfigIntervalId) this.stopMultiTask('reconfig');
+                } else if (type === 'power') {
+                    if (mode !== 'loop' && this.state.powerIntervalId) this.stopAutoPower();
                 }
             },
 
@@ -1671,23 +1790,31 @@
             },
 
             selectConfig(cfg) {
-                this.state.selectedConfig = cfg;
+                if (!this.state.isInstanceMode && this.state.createMode === 'multi') {
+                    if (cfg.creatable) Toast.warning('推荐抢占不可创建的配置以提高效率。');
+                    this.addToQueue('create', cfg);
+                    return;
+                }
 
+                if (this.state.isInstanceMode && this.state.reconfigMode === 'multi') {
+                    if (cfg.creatable) Toast.warning('推荐抢占不可创建的配置以提高效率。');
+                    this.addToQueue('reconfig', cfg);
+                    return;
+                }
+
+                this.state.selectedConfig = cfg;
                 this.renderConfigs();
 
                 this.elements.selectedConfigName.textContent = `${cfg.area_grade} / ${cfg.spec} (${cfg.cpu}C/${cfg.ram}G)`;
                 this.elements.targetConfigName.textContent = this.elements.selectedConfigName.textContent;
-
                 this.elements.createActionArea.classList.remove('hidden');
 
-                // Logic to disable loop create if config is creatable
                 if (cfg.creatable) {
-                    // Force single mode
-                    this.elements.createModeSwitch.checked = false;
-                    this.toggleCreateUI();
+                    if (this.state.createMode === 'loop') this.setMode('create', 'single');
                     this.elements.createModeToggleArea.classList.add('hidden');
                 } else {
                     this.elements.createModeToggleArea.classList.remove('hidden');
+                    if (this.state.createMode === 'single') this.setMode('create', 'loop');
                 }
 
                 if (this.state.isInstanceMode && this.state.selectedInstanceId) {
@@ -1709,34 +1836,31 @@
 
                 this.elements.reconfigActionArea.classList.remove('hidden');
 
-                // Requirement 1: Always show power controls
-                this.togglePowerUI();
+                this.setMode('power', this.state.powerMode);
 
                 if (this.state.selectedConfig) {
                     this.updateReconfigControls(this.state.selectedConfig);
                 } else {
                     this.elements.targetConfigName.textContent = "请先在上方创建列表中点击选择一个目标配置";
-                    this.elements.reconfigModeToggleArea.classList.add('hidden');
-                    this.elements.singleReconfigUI.classList.add('hidden');
-                    this.elements.loopReconfigUI.classList.add('hidden');
+                    if (this.state.reconfigMode !== 'multi') {
+                        this.elements.reconfigModeToggleArea.classList.add('hidden');
+                        this.elements.singleReconfigUI.classList.add('hidden');
+                        this.elements.loopReconfigUI.classList.add('hidden');
+                    }
                 }
             },
 
             updateReconfigControls(targetCfg) {
                 this.elements.targetConfigName.textContent = `${targetCfg.area_grade} / ${targetCfg.spec} (${targetCfg.cpu}C/${targetCfg.ram}G)`;
+                this.elements.reconfigModeToggleArea.classList.remove('hidden');
 
                 if (targetCfg.creatable) {
-                    // Config is available: allow both modes, default to single, but hide toggle per request
-                    this.elements.reconfigModeSwitch.checked = false;
+                    if (this.state.reconfigMode === 'loop') this.setMode('reconfig', 'single');
                     this.elements.reconfigModeToggleArea.classList.add('hidden');
-                    this.elements.loopReconfigMsg.classList.add('hidden');
-                    this.toggleReconfigUI();
+                    if (this.elements.loopReconfigMsg) this.elements.loopReconfigMsg.classList.add('hidden');
                 } else {
-                    // Config is NOT available: force loop mode and show toggle (to indicate why it's looping)
-                    this.elements.reconfigModeToggleArea.classList.remove('hidden');
-                    this.elements.reconfigModeSwitch.checked = true;
-                    this.elements.loopReconfigMsg.classList.remove('hidden');
-                    this.toggleReconfigUI();
+                    if (this.state.reconfigMode === 'single') this.setMode('reconfig', 'loop');
+                    if (this.elements.loopReconfigMsg) this.elements.loopReconfigMsg.classList.remove('hidden');
                 }
             },
 
@@ -2006,6 +2130,195 @@
                 this.elements.instanceIntervalInput.disabled = false;
                 this.elements.reconfigProgressContainer.style.display = 'none';
                 this.elements.reconfigProgressBar.style.width = '0%';
+            },
+
+
+            addToQueue(type, cfg) {
+                const queue = type === 'create' ? this.state.multiCreateQueue : this.state.multiReconfigQueue;
+                if (queue.find(item => item.id === cfg.id)) {
+                    Toast.warning('该配置已在队列中');
+                    return;
+                }
+                queue.push(cfg);
+                this.renderQueueUI(type);
+                Toast.success(`已加入队列: ${cfg.area_grade} / ${cfg.spec} (${cfg.cpu}C)`);
+            },
+
+            removeFromQueue(type, index) {
+                const queue = type === 'create' ? this.state.multiCreateQueue : this.state.multiReconfigQueue;
+                queue.splice(index, 1);
+                this.renderQueueUI(type);
+            },
+
+            moveQueueItem(type, index, dir) {
+                const queue = type === 'create' ? this.state.multiCreateQueue : this.state.multiReconfigQueue;
+                if (dir === -1 && index > 0) {
+                    const temp = queue[index];
+                    queue[index] = queue[index - 1];
+                    queue[index - 1] = temp;
+                } else if (dir === 1 && index < queue.length - 1) {
+                    const temp = queue[index];
+                    queue[index] = queue[index + 1];
+                    queue[index + 1] = temp;
+                }
+                this.renderQueueUI(type);
+            },
+
+            renderQueueUI(type) {
+                const queue = type === 'create' ? this.state.multiCreateQueue : this.state.multiReconfigQueue;
+                const ul = type === 'create' ? this.elements.multiCreateQueue : this.elements.multiReconfigQueue;
+                const emptyMsg = type === 'create' ? this.elements.multiCreateEmptyMsg : this.elements.multiReconfigEmptyMsg;
+
+                ul.innerHTML = '';
+                if (queue.length === 0) {
+                    emptyMsg.style.display = 'block';
+                } else {
+                    emptyMsg.style.display = 'none';
+                    queue.forEach((cfg, index) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span class="config-queue-info">[${cfg.area_grade}] ${cfg.spec} (${cfg.cpu}C/${cfg.ram}G)</span>
+                            <div class="config-queue-actions">
+                                <button onclick="simpCreateApp.moveQueueItem('${type}', ${index}, -1)">⬆️</button>
+                                <button onclick="simpCreateApp.moveQueueItem('${type}', ${index}, 1)">⬇️</button>
+                                <button class="del-btn" onclick="simpCreateApp.removeFromQueue('${type}', ${index})">❌</button>
+                            </div>
+                        `;
+                        ul.appendChild(li);
+                    });
+                }
+            },
+
+            toggleMultiTask(type) {
+                const intervalId = type === 'create' ? this.state.multiCreateIntervalId : this.state.multiReconfigIntervalId;
+                if (intervalId) {
+                    this.stopMultiTask(type);
+                } else {
+                    this.startMultiTask(type);
+                }
+            },
+
+            startMultiTask(type) {
+                const queue = type === 'create' ? this.state.multiCreateQueue : this.state.multiReconfigQueue;
+                if (queue.length === 0) {
+                    Toast.warning('抢占队列为空，请先添加配置');
+                    return;
+                }
+
+                const intervalInput = type === 'create' ? this.elements.multiCreateIntervalInput : this.elements.multiReconfigIntervalInput;
+                const btn = type === 'create' ? this.elements.autoMultiCreateBtn : this.elements.autoMultiReconfigBtn;
+                const progressContainer = type === 'create' ? this.elements.multiCreateProgressContainer : this.elements.multiReconfigProgressContainer;
+                const progressBar = type === 'create' ? this.elements.multiCreateProgressBar : this.elements.multiReconfigProgressBar;
+                const countEl = type === 'create' ? this.elements.multiCreateRepeatCount : this.elements.multiReconfigRepeatCount;
+
+                let interval = parseInt(intervalInput.value);
+                if (isNaN(interval) || interval < this.config.MIN_INTERVAL) {
+                    Toast.warning(`间隔时间已自动调整为最小值 ${this.config.MIN_INTERVAL} 秒`);
+                    interval = this.config.MIN_INTERVAL;
+                    intervalInput.value = interval;
+                }
+
+                btn.textContent = '停止';
+                btn.classList.add('danger');
+                intervalInput.disabled = true;
+                progressContainer.style.display = 'block';
+
+                if (type === 'create') {
+                    this.state.multiCreateCount = 0;
+                    countEl.textContent = `已尝试轮数: 0 次`;
+                } else {
+                    this.state.multiReconfigCount = 0;
+                    countEl.textContent = `已尝试轮数: 0 次`;
+                }
+
+                const runMultiLoop = async () => {
+                    if (!this.state.token) return;
+
+                    progressBar.style.transition = 'none';
+                    progressBar.style.width = '0%';
+                    setTimeout(() => {
+                        progressBar.style.transition = `width ${interval}s linear`;
+                        progressBar.style.width = '100%';
+                    }, 50);
+
+                    for (let i = 0; i < queue.length; i++) {
+                        const cfg = queue[i];
+                        try {
+                            if (type === 'create') {
+                                const body = `item_id=${cfg.id}&version_id=${this.config.VERSION_ID}`;
+                                const response = await fetch(`${this.config.API_BASE}/ins/create`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': this.state.token,
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    },
+                                    body: body
+                                });
+                                const data = await response.json();
+                                if (!response.ok || data.code !== 200) throw new Error(data.msg || `HTTP Error ${response.status}`);
+                            } else {
+                                const body = JSON.stringify({ item_id: cfg.id });
+                                await this.apiFetch(`/ins/${this.state.selectedInstanceId}/change`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body
+                                });
+                            }
+
+                            // Success
+                            Toast.success(`🎉 抢占成功！已获得: ${cfg.area_grade} / ${cfg.spec}`, 5000);
+                            this.stopMultiTask(type);
+                            if (type === 'create') {
+                                this.loadConfigs();
+                            } else {
+                                this.loadInstances();
+                            }
+                            return; // Stop completely
+                        } catch (err) {
+                            // If failure contains specific rate limit words, we might want to break the loop for this interval
+                            if (err.message.includes('频繁') || err.message.includes('稍后')) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (type === 'create') {
+                        this.state.multiCreateCount++;
+                        countEl.textContent = `已尝试轮数: ${this.state.multiCreateCount} 次`;
+                    } else {
+                        this.state.multiReconfigCount++;
+                        countEl.textContent = `已尝试轮数: ${this.state.multiReconfigCount} 次`;
+                    }
+                };
+
+                runMultiLoop(); // Execute first run
+                const timerId = setInterval(runMultiLoop, interval * 1000);
+
+                if (type === 'create') this.state.multiCreateIntervalId = timerId;
+                else this.state.multiReconfigIntervalId = timerId;
+            },
+
+            stopMultiTask(type) {
+                if (type === 'create') {
+                    if (this.state.multiCreateIntervalId) {
+                        clearInterval(this.state.multiCreateIntervalId);
+                        this.state.multiCreateIntervalId = null;
+                    }
+                    if (this.elements.autoMultiCreateBtn) this.elements.autoMultiCreateBtn.textContent = '开始多配置';
+                    if (this.elements.multiCreateIntervalInput) this.elements.multiCreateIntervalInput.disabled = false;
+                    if (this.elements.multiCreateProgressContainer) this.elements.multiCreateProgressContainer.style.display = 'none';
+                    if (this.elements.multiCreateProgressBar) this.elements.multiCreateProgressBar.style.width = '0%';
+                } else {
+                    if (this.state.multiReconfigIntervalId) {
+                        clearInterval(this.state.multiReconfigIntervalId);
+                        this.state.multiReconfigIntervalId = null;
+                    }
+                    if (this.elements.autoMultiReconfigBtn) this.elements.autoMultiReconfigBtn.textContent = '开始多配置';
+                    if (this.elements.multiReconfigIntervalInput) this.elements.multiReconfigIntervalInput.disabled = false;
+                    if (this.elements.multiReconfigProgressContainer) this.elements.multiReconfigProgressContainer.style.display = 'none';
+                    if (this.elements.multiReconfigProgressBar) this.elements.multiReconfigProgressBar.style.width = '0%';
+                }
             },
 
             stopAutoPower() {
